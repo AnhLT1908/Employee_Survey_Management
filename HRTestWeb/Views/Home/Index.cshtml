@@ -1,0 +1,157 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-3">
+        <h3 class="m-0 me-3">Trang chủ</h3>
+        <span class="text-muted">Chọn chức năng để bắt đầu</span>
+    </div>
+
+    <!-- Tabs điều hướng (router bằng link tới controller/action) -->
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" asp-controller="Home" asp-action="Index">Tổng quan</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Surveys" asp-action="Index">Khảo sát</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Tests" asp-action="Index">Bài test</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="QuestionBanks" asp-action="Index">Ngân hàng câu hỏi</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Users" asp-action="Index">Người dùng & Nhóm</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Assignments" asp-action="Index">Phân công</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Grading" asp-action="Index">Chấm điểm</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Reports" asp-action="Index">Báo cáo</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Settings" asp-action="Index">Cấu hình</a>
+        </li>
+    </ul>
+
+    <!-- Lưới thẻ chức năng (đi tới các module) -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+        <div class="col">
+            <a class="text-decoration-none" asp-controller="Surveys" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">📝</div>
+                            <h5 class="card-title m-0">Khảo sát</h5>
+                        </div>
+                        <p class="card-text text-muted">Làm khảo sát, xem lịch sử & kết quả.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-controller="Tests" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">🎯</div>
+                            <h5 class="card-title m-0">Bài test</h5>
+                        </div>
+                        <p class="card-text text-muted">Thi trực tuyến, đếm giờ, nộp bài.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-controller="QuestionBanks" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">📚</div>
+                            <h5 class="card-title m-0">Ngân hàng câu hỏi</h5>
+                        </div>
+                        <p class="card-text text-muted">Tạo/sửa/xoá & phân loại câu hỏi.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-controller="Users" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">👥</div>
+                            <h5 class="card-title m-0">Người dùng & Nhóm</h5>
+                        </div>
+                        <p class="card-text text-muted">Quản lý nhân viên, role & phòng ban.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-controller="Assignments" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">📌</div>
+                            <h5 class="card-title m-0">Phân công</h5>
+                        </div>
+                        <p class="card-text text-muted">Giao bài test theo nhóm/role/level.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-controller="Grading" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">✅</div>
+                            <h5 class="card-title m-0">Chấm điểm</h5>
+                        </div>
+                        <p class="card-text text-muted">Tự động trắc nghiệm & thủ công tự luận.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-controller="Reports" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">📊</div>
+                            <h5 class="card-title m-0">Báo cáo</h5>
+                        </div>
+                        <p class="card-text text-muted">Xuất Excel/PDF theo role, level, kỹ năng.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-controller="Settings" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">⚙️</div>
+                            <h5 class="card-title m-0">Cấu hình</h5>
+                        </div>
+                        <p class="card-text text-muted">Logo, tên hệ thống, phân quyền chi tiết.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,35 @@
+# --- Visual Studio / .NET ---
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Aa]rtifacts/
+
+# JetBrains Rider
+.idea/
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+project.lock.json
+packages/
+
+# Logs / misc
+*.log
+*.sqlite
+*.dbmdl
+
+# --- Local configs & secrets (DO NOT COMMIT) ---
+# Ignore ALL environment appsettings
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.*.json
+
+# …but allow template files for sharing placeholders
+!**/appsettings.Template.json
+!**/appsettings.*.Template.json

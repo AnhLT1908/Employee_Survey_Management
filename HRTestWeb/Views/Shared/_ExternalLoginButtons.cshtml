@@ -1,0 +1,24 @@
+﻿@using HRTestInfrastructure.Identity
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+}
+
+@if (providers.Any())
+{
+    <div class="text-center">
+        <div class="text-muted my-2">Hoặc đăng nhập bằng</div>
+        <div class="d-grid gap-2">
+            @foreach (var p in providers)
+            {
+                <form asp-controller="Account" asp-action="ExternalLogin" method="post" class="d-grid">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="provider" value="@p.Name" />
+                    <button class="btn btn-outline-secondary">@p.DisplayName</button>
+                </form>
+            }
+        </div>
+    </div>
+}
