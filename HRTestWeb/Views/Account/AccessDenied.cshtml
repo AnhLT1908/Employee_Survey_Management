@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = "Không có quyền";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-5">
+    <div class="alert alert-warning shadow-sm">
+        <h5 class="mb-1">Bạn không có quyền truy cập trang này.</h5>
+        <div class="small text-muted">Vui lòng đăng nhập bằng tài khoản có quyền phù hợp (Admin).</div>
+    </div>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Về trang chủ</a>
+</div>

@@ -30,7 +30,7 @@ builder.Services
 builder.Services.ConfigureApplicationCookie(opt =>
 {
     opt.LoginPath = "/Account/Login";
-    opt.AccessDeniedPath = "/Account/Login";
+    opt.AccessDeniedPath = "/Account/AccessDenied";
 });
 
 builder.Services.AddControllersWithViews();
@@ -98,10 +98,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Route mặc định → Home/Index (đăng nhập xong từ AccountController đã RedirectToAction("Index","Home"))
+// Route cho Areas (Admin)
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+// Mặc định mở trang Login
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 
-app.MapRazorPages(); // nếu dùng Identity UI
+app.MapRazorPages();
 
 app.Run();

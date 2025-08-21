@@ -31,77 +31,47 @@
 
     <!-- HEADER -->
     <header class="app-header sticky-top bg-white border-bottom shadow-sm">
-        <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
-            <div class="container">
+<nav class="navbar navbar-expand-lg bg-light border-bottom mb-3">
+  <div class="container">
+    <a class="navbar-brand" asp-controller="Home" asp-action="Index">HRTest</a>
 
-                <!-- Brand -->
-                <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
-                    <span class="brand-badge me-2">HR</span>
-                    <span class="fw-semibold">HRTest</span>
-                </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainnav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-                <!-- Toggler -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainnav"
-                        aria-controls="mainnav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+    <div id="mainnav" class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </li>
+      </ul>
 
-                <!-- Nav -->
-                <div id="mainnav" class="collapse navbar-collapse">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link @IsActive("Home", "Index")" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @IsActive("Home", "Privacy")" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-
-                    <!-- Right side -->
-                    <ul class="navbar-nav align-items-center">
-                        @if (SignInManager.IsSignedIn(User))
-                        {
-                            <li class="nav-item me-2 d-none d-lg-block">
-                                <span class="text-muted small">@User.Identity!.Name</span>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="avatar-initials me-2">
-                                        @{
-                                            var name = User.Identity!.Name ?? "U";
-                                            var ini = new string(name
-                                            .Trim()
-                                            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                            .Select(s => char.ToUpperInvariant(s[0]))
-                                            .Take(2).ToArray());
-                                        }
-                                        @ini
-                                    </span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><h6 class="dropdown-header">@User.Identity!.Name</h6></li>
-                                    <li><a class="dropdown-item disabled">Hồ sơ (sắp có)</a></li>
-                                    <li><a class="dropdown-item disabled">Thiết lập (sắp có)</a></li>
-                                    <li><hr class="dropdown-divider" /></li>
-                                    <li>
-                                        <form asp-controller="Account" asp-action="Logout" method="post" class="px-3">
-                                            @Html.AntiForgeryToken()
-                                            <button class="btn btn-outline-danger w-100">Đăng xuất</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="btn btn-dark btn-sm px-3" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        </nav>
+      <ul class="navbar-nav">
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <li class="nav-item me-2 align-self-center">
+              <span class="text-muted small">@User.Identity!.Name</span>
+            </li>
+        <li class="nav-item">
+  <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-outline-danger btn-sm">Đăng xuất</button>
+  </form>
+</li>
+        }
+        else
+        {
+            <li class="nav-item">
+              <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+            </li>
+        }
+      </ul>
+    </div>
+  </div>
+</nav>
     </header>
 
     <!-- CONTENT -->

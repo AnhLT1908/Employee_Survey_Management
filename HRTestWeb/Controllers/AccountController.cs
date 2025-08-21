@@ -21,6 +21,7 @@ namespace HRTestWeb.Controllers
         private readonly IEmailSender _email;
 
         private const string DefaultSsoRole = "Employee";
+        private const string AdminRole = "Admin";          
         private const string Provider = "HRTest";
         private const string OtpName = "ResetPasswordOtp";
         private const string ResetTokenName = "ResetPasswordToken";
@@ -51,6 +52,15 @@ namespace HRTestWeb.Controllers
             if (!await _roleManager.RoleExistsAsync(roleName))
                 await _roleManager.CreateAsync(new IdentityRole(roleName));
         }
+
+        // ⬇️ Helper điều hướng sau đăng nhập
+        private async Task<IActionResult> RedirectAfterLoginAsync(ApplicationUser user, string? returnUrl)
+        {
+            if (await _userManager.IsInRoleAsync(user, AdminRole))
+                return RedirectToAction("Index", "Home", new { area = "Admin" });
+
+            return RedirectToAction("Index", "Home");
+        }
         #endregion
 
         #region Local login
@@ -78,9 +88,7 @@ namespace HRTestWeb.Controllers
 
             if (result.Succeeded)
             {
-                if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-                    return Redirect(model.ReturnUrl);
-                return RedirectToAction("Index", "Home");
+                return await RedirectAfterLoginAsync(user, model.ReturnUrl);
             }
 
             if (result.IsLockedOut)
@@ -125,7 +133,14 @@ namespace HRTestWeb.Controllers
                 info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
 
             if (extSignIn.Succeeded)
+            {
+                // Lấy user để kiểm tra role rồi điều hướng
+                var ssoUser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                if (ssoUser != null)
+                    return await RedirectAfterLoginAsync(ssoUser, returnUrl);
+
                 return Redirect(returnUrl ?? Url.Action("Index", "Home")!);
+            }
 
             // Lấy thông tin từ claims
             var email = info.Principal.FindFirstValue(ClaimTypes.Email)
@@ -183,7 +198,11 @@ namespace HRTestWeb.Controllers
             }
 
             await _signInManager.SignInAsync(user, isPersistent: false);
-            return Redirect(returnUrl ?? Url.Action("Index", "Home")!);
+
+
+            // ⬇️ Điều hướng tập trung qua helper (ưu tiên Admin Area)
+            return await RedirectAfterLoginAsync(user, returnUrl);
+
         }
         #endregion
 

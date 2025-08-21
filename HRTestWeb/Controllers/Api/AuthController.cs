@@ -34,24 +34,31 @@ namespace HRTestWeb.Controllers.Api
                        ?? await _userManager.FindByNameAsync(req.Email);
 
             if (user == null)
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
+                return Unauthorized(new { message = "Tài khoản không tồn tại." });
 
-            var result = await _signInManager.PasswordSignInAsync(user.UserName!, req.Password, req.RememberMe, lockoutOnFailure: true);
+            var result = await _signInManager.PasswordSignInAsync(
+                user.UserName!, req.Password, req.RememberMe, lockoutOnFailure: true);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                var roles = (await _userManager.GetRolesAsync(user)).ToArray();
-                var redirect = !string.IsNullOrEmpty(req.ReturnUrl) && Url.IsLocalUrl(req.ReturnUrl)
-                    ? req.ReturnUrl
-                    : Url.Action("Index", "Home")!;
-                return Ok(new LoginResponse(user.UserName!, roles, redirect));
+                if (result.IsLockedOut)
+                    return Unauthorized(new { message = "Tài khoản tạm bị khoá. Vui lòng thử lại sau." });
+                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
             }
 
-            if (result.IsLockedOut)
-                return Unauthorized(new { message = "Tài khoản tạm bị khoá. Vui lòng thử lại sau." });
+            var roles = (await _userManager.GetRolesAsync(user)).ToArray();
+            var isAdmin = roles.Contains("Admin"); // có thể dùng await _userManager.IsInRoleAsync(user, "Admin")
 
-            return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
+            // ✅ Admin vào thẳng khu vực Admin (bỏ qua ReturnUrl)
+            var redirect = isAdmin
+                ? Url.Action("Index", "Home", new { area = "Admin" })!
+                : (!string.IsNullOrEmpty(req.ReturnUrl) && Url.IsLocalUrl(req.ReturnUrl)
+                    ? req.ReturnUrl
+                    : Url.Action("Index", "Home")!);
+
+            return Ok(new LoginResponse(user.UserName!, roles, redirect));
         }
+
 
         [HttpPost("logout")]
         [Authorize]

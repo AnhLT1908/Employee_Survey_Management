@@ -1,0 +1,108 @@
+﻿@{
+    ViewData["Title"] = "Bảng điều khiển (Admin)";
+}
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="m-0">Bảng điều khiển (Admin)</h3>
+            <div class="text-muted">Trang trung tâm quản trị hệ thống</div>
+        </div>
+    </div>
+
+    <!-- Tabs điều hướng -->
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item"><a class="nav-link active" asp-area="Admin" asp-controller="Home" asp-action="Index">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Users" asp-action="Index">Quản lý người dùng</a></li>
+        <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">Quản lý bộ câu hỏi</a></li>
+        <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Tests" asp-action="Index">Quản lý bài test</a></li>
+        <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Grading" asp-action="Index">Chấm điểm & đánh giá</a></li>
+        <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Settings" asp-action="Index">Cấu hình hệ thống</a></li>
+    </ul>
+
+    <!-- Lưới thẻ nhanh -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        <div class="col">
+            <a class="text-decoration-none" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">👤</div>
+                            <h5 class="m-0">Quản lý người dùng</h5>
+                        </div>
+                        <div class="text-muted">Thêm/sửa/xóa nhân viên, phân quyền, phòng ban.</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">📚</div>
+                            <h5 class="m-0">Quản lý bộ câu hỏi</h5>
+                        </div>
+                        <div class="text-muted">Ngân hàng câu hỏi, phân loại kỹ năng/độ khó, import Excel.</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-area="Admin" asp-controller="Tests" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">🧪</div>
+                            <h5 class="m-0">Quản lý bài test</h5>
+                        </div>
+                        <div class="text-muted">Tạo test, cấu hình thời gian/điểm qua môn, câu hỏi ngẫu nhiên.</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-area="Admin" asp-controller="Grading" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">✅</div>
+                            <h5 class="m-0">Chấm điểm & đánh giá</h5>
+                        </div>
+                        <div class="text-muted">Tự động trắc nghiệm, chấm tự luận thủ công, nhận xét năng lực.</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-area="Admin" asp-controller="Home" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">📊</div>
+                            <h5 class="m-0">Dashboard</h5>
+                        </div>
+                        <div class="text-muted">Tổng quan: số bài test, tỉ lệ hoàn thành, top kỹ năng…</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a class="text-decoration-none" asp-area="Admin" asp-controller="Settings" asp-action="Index">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="fs-3 me-2">⚙️</div>
+                            <h5 class="m-0">Cấu hình hệ thống</h5>
+                        </div>
+                        <div class="text-muted">Logo, tên hệ thống, email OTP, phân quyền chi tiết.</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
