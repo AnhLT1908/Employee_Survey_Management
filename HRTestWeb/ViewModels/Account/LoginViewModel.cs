@@ -4,7 +4,7 @@ namespace HRTestWeb.ViewModels.Account
 {
     public class LoginViewModel
     {
-        [Required, EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        [Required]
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 

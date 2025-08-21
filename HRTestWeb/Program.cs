@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using HRTestWeb.Services.Email;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,9 +73,15 @@ if (!string.IsNullOrWhiteSpace(azure["ClientId"]) && !string.IsNullOrWhiteSpace(
         opts.Scope.Add("profile");
     });
 }
+
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+
 // -------------------------------------------------------------------------------
 
 var app = builder.Build();
+
 
 // Pipeline
 if (!app.Environment.IsDevelopment())

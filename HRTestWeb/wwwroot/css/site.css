@@ -1,22 +1,68 @@
-html {
-  font-size: 14px;
+﻿/* ===== App Header / Footer polish ===== */
+:root {
+    --text-strong: #222;
+    --text-muted: #6b6b6b;
+    --line: #e9ecef;
+    --tile: #f7f7f7;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+/* brand huy hiệu nhỏ trước chữ HRTest */
+.brand-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #f3f3f3;
+    border: 1px solid #e5e5e5;
+    color: #222;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: .3px;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* navbar look */
+.app-header .navbar .nav-link {
+    color: var(--text-strong);
+    padding: .5rem .75rem;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+    .app-header .navbar .nav-link.active {
+        font-weight: 600;
+        position: relative;
+    }
+
+        .app-header .navbar .nav-link.active::after {
+            content: "";
+            position: absolute;
+            left: .5rem;
+            right: .5rem;
+            bottom: -.45rem;
+            height: 2px;
+            background: #222;
+            border-radius: 2px;
+        }
+
+/* avatar initials */
+.avatar-initials {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-grid;
+    place-items: center;
+    background: #ececec;
+    border: 1px solid #e2e2e2;
+    color: #333;
+    font-weight: 700;
+    font-size: .85rem;
 }
 
-body {
-  margin-bottom: 60px;
+/* content spacing */
+.app-content .container {
+    max-width: 1140px;
+}
+
+/* footer */
+.app-footer .footer-links a:hover {
+    text-decoration: underline;
 }

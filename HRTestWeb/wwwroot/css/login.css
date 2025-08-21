@@ -1,0 +1,70 @@
+﻿/* ==== Login page, neutral palette (white/gray/black), no blue ==== */
+
+/* Layout vùng đăng nhập */
+.auth-wrap {
+    min-height: calc(100vh - 120px);
+    background: #ffffff; /* trắng chủ đạo */
+}
+
+/* Card đăng nhập */
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    background-color: #fff;
+}
+
+/* Logo tròn chữ HR – tông ghi đậm */
+.brand-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #f3f3f3;
+    border: 1px solid #e5e5e5;
+    color: #222; /* đen ghi đậm */
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Floating input bo tròn nhẹ */
+.form-floating > .form-control {
+    border-radius: 10px;
+}
+
+/* Nút chính – đen trung tính (không xanh) */
+.btn-primary {
+    background-color: #222 !important;
+    border-color: #222 !important;
+    color: #fff !important;
+}
+
+    .btn-primary:hover {
+        background-color: #111 !important;
+        border-color: #111 !important;
+    }
+
+/* Link phụ & text mờ */
+a.link-secondary, .text-muted {
+    color: #666 !important;
+}
+
+/* Focus ring trung tính */
+.form-control:focus, .btn:focus {
+    box-shadow: 0 0 0 0.2rem rgba(33,33,33,0.12);
+    border-color: #444;
+}
+
+/* Khu SSO: nếu partial trống sẽ không chiếm chỗ */
+.sso-area {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+}
+
+/* Alert lỗi gọn gàng */
+#apiError {
+    border-radius: 10px;
+}
