@@ -1,12 +1,11 @@
-﻿using HRTestInfrastructure.Data;
+﻿using System.Threading.Tasks;
+using HRTestInfrastructure.Data;
 using HRTestInfrastructure.Identity;
+using HRTestWeb.Services.Email;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using HRTestWeb.Services.Email;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,65 +25,108 @@ builder.Services
     .AddDefaultTokenProviders()
     .AddDefaultUI();
 
-// Cookie: chưa đăng nhập sẽ bị chuyển về /Account/Login
+builder.Services.AddControllersWithViews();
+
+// Cookie (API trả JSON status code)
 builder.Services.ConfigureApplicationCookie(opt =>
 {
     opt.LoginPath = "/Account/Login";
     opt.AccessDeniedPath = "/Account/AccessDenied";
+    opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    opt.Cookie.SameSite = SameSiteMode.None; // cần cho SSO qua proxy
+
+    opt.Events.OnRedirectToLogin = ctx =>
+    {
+        if (ctx.Request.Path.StartsWithSegments("/api"))
+        {
+            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+        ctx.Response.Redirect(ctx.RedirectUri);
+        return Task.CompletedTask;
+    };
+    opt.Events.OnRedirectToAccessDenied = ctx =>
+    {
+        if (ctx.Request.Path.StartsWithSegments("/api"))
+        {
+            ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        }
+        ctx.Response.Redirect(ctx.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 
-builder.Services.AddControllersWithViews();
-
-// -------- External Login Providers (bật theo cấu hình trong appsettings) --------
+// External providers (Google)
 var auth = builder.Services.AddAuthentication();
 
 var google = builder.Configuration.GetSection("Authentication:Google");
-if (!string.IsNullOrWhiteSpace(google["ClientId"]))
+var googleId = google["ClientId"];
+var googleSecret = google["ClientSecret"];
+if (!string.IsNullOrWhiteSpace(googleId) && !string.IsNullOrWhiteSpace(googleSecret))
 {
-    auth.AddGoogle(opts =>
+    auth.AddGoogle("Google", opts =>
     {
-        opts.ClientId = google["ClientId"];
-        opts.ClientSecret = google["ClientSecret"];
-    });
-}
-
-var msft = builder.Configuration.GetSection("Authentication:Microsoft");
-if (!string.IsNullOrWhiteSpace(msft["ClientId"]))
-{
-    auth.AddMicrosoftAccount(opts =>
-    {
-        opts.ClientId = msft["ClientId"];
-        opts.ClientSecret = msft["ClientSecret"];
-    });
-}
-
-var azure = builder.Configuration.GetSection("Authentication:AzureAd");
-if (!string.IsNullOrWhiteSpace(azure["ClientId"]) && !string.IsNullOrWhiteSpace(azure["TenantId"]))
-{
-    auth.AddOpenIdConnect("AzureAd", opts =>
-    {
-        opts.Authority = $"https://login.microsoftonline.com/{azure["TenantId"]}/v2.0";
-        opts.ClientId = azure["ClientId"];
-        opts.ClientSecret = azure["ClientSecret"];
-        opts.ResponseType = "code";
-        opts.CallbackPath = "/signin-oidc-azuread";
+        opts.ClientId = googleId;
+        opts.ClientSecret = googleSecret;
+        opts.CallbackPath = "/signin-google";    // trùng Redirect URI trên Google
         opts.SaveTokens = true;
-        opts.Scope.Add("email");
-        opts.Scope.Add("profile");
     });
 }
 
+// Email (SMTP)
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
-
-
-// -------------------------------------------------------------------------------
 
 var app = builder.Build();
 
 
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    var email = "admin@fint.com";
+    var user = await userManager.FindByEmailAsync(email);
+
+    if (user == null)
+    {
+        user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true,
+            FullName = "Admin System"
+        };
+
+        var create = await userManager.CreateAsync(user, "Leanh2003");
+        if (!create.Succeeded)
+        {
+            throw new Exception("Seed user creation failed: " +
+                string.Join("; ", create.Errors.Select(e => e.Description)));
+        }
+
+        // (Tuỳ chọn) gán role mặc định
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        const string defaultRole = "Admin";
+        if (!await roleManager.RoleExistsAsync(defaultRole))
+            await roleManager.CreateAsync(new IdentityRole(defaultRole));
+        await userManager.AddToRoleAsync(user, defaultRole);
+    }
+}
+
+// (Tuỳ chọn dev) tự migrate
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<HRTestDbContext>();
+    db.Database.Migrate();
+}
+
 // Pipeline
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -93,17 +135,25 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+// Quan trọng cho ngrok: tôn trọng X-Forwarded-Proto/Host để tạo absolute URL đúng domain ngrok
+var fwd = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+};
+fwd.KnownNetworks.Clear();
+fwd.KnownProxies.Clear();
+app.UseForwardedHeaders(fwd);
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Route mặc định → Home/Index (đăng nhập xong từ AccountController đã RedirectToAction("Index","Home"))
-// Route cho Areas (Admin)
+app.MapControllers();
+
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Mặc định mở trang Login
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");

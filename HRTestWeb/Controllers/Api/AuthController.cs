@@ -27,17 +27,19 @@ namespace HRTestWeb.Controllers.Api
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
-            if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
+            if (req is null || string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
                 return BadRequest(new { message = "Thiếu Email hoặc Mật khẩu." });
 
+            // Cho phép login bằng email hoặc username
             var user = await _userManager.FindByEmailAsync(req.Email)
                        ?? await _userManager.FindByNameAsync(req.Email);
 
             if (user == null)
                 return Unauthorized(new { message = "Tài khoản không tồn tại." });
 
+            // ❗ Dùng overload nhận TUser để tránh lỗi khi UserName = null
             var result = await _signInManager.PasswordSignInAsync(
-                user.UserName!, req.Password, req.RememberMe, lockoutOnFailure: true);
+                user, req.Password, req.RememberMe, lockoutOnFailure: true);
 
             if (!result.Succeeded)
             {
@@ -47,18 +49,23 @@ namespace HRTestWeb.Controllers.Api
             }
 
             var roles = (await _userManager.GetRolesAsync(user)).ToArray();
-            var isAdmin = roles.Contains("Admin"); // có thể dùng await _userManager.IsInRoleAsync(user, "Admin")
+            var isAdmin = roles.Contains("Admin");
 
-            // ✅ Admin vào thẳng khu vực Admin (bỏ qua ReturnUrl)
+            // Fallback an toàn nếu Url.Action trả null
+            var homeUrl = Url.Action("Index", "Home") ?? "/";
+            var adminUrl = Url.Action("Index", "Home", new { area = "Admin" }) ?? "/Admin/Home/Index";
+
             var redirect = isAdmin
-                ? Url.Action("Index", "Home", new { area = "Admin" })!
+                ? adminUrl
                 : (!string.IsNullOrEmpty(req.ReturnUrl) && Url.IsLocalUrl(req.ReturnUrl)
                     ? req.ReturnUrl
-                    : Url.Action("Index", "Home")!);
+                    : homeUrl);
 
-            return Ok(new LoginResponse(user.UserName!, roles, redirect));
+            // Trả về tên hiển thị hợp lý
+            var nameForClient = user.UserName ?? user.Email ?? user.Id;
+
+            return Ok(new LoginResponse(nameForClient, roles, redirect));
         }
-
 
         [HttpPost("logout")]
         [Authorize]

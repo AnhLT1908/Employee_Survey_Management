@@ -1,0 +1,70 @@
+﻿/* Nền sáng tương tự các màn hình trước */
+.admin-page {
+    background: #f8f9fb; /* xám rất nhạt */
+    min-height: calc(100vh - 120px); /* trừ header/footer */
+}
+
+/* Heading */
+.page-heading h2 {
+    letter-spacing: .2px;
+}
+
+/* Tabs */
+.admin-tabs .nav-link {
+    color: #495057;
+    background: transparent;
+    border-radius: .65rem;
+    margin-right: .5rem;
+    transition: all .2s ease;
+}
+
+    .admin-tabs .nav-link:hover {
+        background: #f1f3f5;
+    }
+
+    .admin-tabs .nav-link.active {
+        background: #212529; /* nền đậm, không xanh */
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(33,37,41,.15);
+    }
+
+/* Cards */
+.admin-card .card {
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+    .admin-card .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(33,37,41,.12);
+        border-color: #dee2e6;
+    }
+
+.admin-card .card-title {
+    font-weight: 600;
+}
+
+.admin-card .card-text {
+    font-size: .935rem;
+}
+
+/* Mũi tên subtle ở góc phải khi hover */
+.admin-card .card-body {
+    position: relative;
+}
+
+    .admin-card .card-body::after {
+        content: "→";
+        position: absolute;
+        right: 1rem;
+        top: 1.05rem;
+        color: #adb5bd;
+        font-size: 1rem;
+        transition: transform .2s ease, color .2s ease;
+    }
+
+.admin-card .card:hover .card-body::after {
+    transform: translateX(3px);
+    color: #6c757d;
+}

@@ -1,10 +1,10 @@
-﻿using System.Linq;                          // gộp lỗi hiển thị
+﻿using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;         // tạo OTP
-using System.Text.Json;                     // serialize token OTP
+using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading.Tasks;
 using HRTestInfrastructure.Identity;
-using HRTestWeb.Services.Email;             // IEmailSender
+using HRTestWeb.Services.Email;
 using HRTestWeb.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +21,7 @@ namespace HRTestWeb.Controllers
         private readonly IEmailSender _email;
 
         private const string DefaultSsoRole = "Employee";
-        private const string AdminRole = "Admin";          
+        private const string AdminRole = "Admin";
         private const string Provider = "HRTest";
         private const string OtpName = "ResetPasswordOtp";
         private const string ResetTokenName = "ResetPasswordToken";
@@ -53,7 +53,6 @@ namespace HRTestWeb.Controllers
                 await _roleManager.CreateAsync(new IdentityRole(roleName));
         }
 
-        // ⬇️ Helper điều hướng sau đăng nhập
         private async Task<IActionResult> RedirectAfterLoginAsync(ApplicationUser user, string? returnUrl)
         {
             if (await _userManager.IsInRoleAsync(user, AdminRole))
@@ -84,12 +83,10 @@ namespace HRTestWeb.Controllers
             }
 
             var result = await _signInManager.PasswordSignInAsync(
-                user.UserName!, model.Password, model.RememberMe, lockoutOnFailure: true);
+                user, model.Password, model.RememberMe, lockoutOnFailure: true);
 
             if (result.Succeeded)
-            {
                 return await RedirectAfterLoginAsync(user, model.ReturnUrl);
-            }
 
             if (result.IsLockedOut)
             {
@@ -103,9 +100,20 @@ namespace HRTestWeb.Controllers
         #endregion
 
         #region SSO
+        // POST chuẩn từ nút trong view
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+        {
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
+            var props = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(props, provider);
+        }
+
+        // GET fallback để tránh 405 nếu ai đó truy cập bằng GET
+        [HttpGet]
+        [ActionName("ExternalLogin")]
+        public IActionResult ExternalLoginGet(string provider, string? returnUrl = null)
         {
             var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
             var props = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
@@ -128,13 +136,11 @@ namespace HRTestWeb.Controllers
                 return RedirectToAction(nameof(Login), new { returnUrl });
             }
 
-            // Nếu đã liên kết -> đăng nhập luôn
             var extSignIn = await _signInManager.ExternalLoginSignInAsync(
                 info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
 
             if (extSignIn.Succeeded)
             {
-                // Lấy user để kiểm tra role rồi điều hướng
                 var ssoUser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
                 if (ssoUser != null)
                     return await RedirectAfterLoginAsync(ssoUser, returnUrl);
@@ -142,7 +148,6 @@ namespace HRTestWeb.Controllers
                 return Redirect(returnUrl ?? Url.Action("Index", "Home")!);
             }
 
-            // Lấy thông tin từ claims
             var email = info.Principal.FindFirstValue(ClaimTypes.Email)
                         ?? info.Principal.FindFirstValue("preferred_username");
             var displayName = info.Principal.Identity?.Name
@@ -156,14 +161,12 @@ namespace HRTestWeb.Controllers
                 return new string(raw.Where(ch => char.IsLetterOrDigit(ch) || ch is '-' or '_' or '.').ToArray());
             }
 
-            // Tìm user
             ApplicationUser? user = null;
             if (!string.IsNullOrWhiteSpace(email))
                 user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 user = await _userManager.FindByNameAsync(MakeUserName());
 
-            // Chưa có -> tạo mới
             if (user == null)
             {
                 user = new ApplicationUser
@@ -182,13 +185,11 @@ namespace HRTestWeb.Controllers
                     return RedirectToAction(nameof(Login));
                 }
 
-                // gán role mặc định
                 await EnsureRoleAsync(DefaultSsoRole);
                 if (!await _userManager.IsInRoleAsync(user, DefaultSsoRole))
                     await _userManager.AddToRoleAsync(user, DefaultSsoRole);
             }
 
-            // Link thông tin đăng nhập ngoài
             var linkRes = await _userManager.AddLoginAsync(user, info);
             if (!linkRes.Succeeded && !linkRes.Errors.Any(e => e.Code.Contains("LoginAlreadyAssociated")))
             {
@@ -198,11 +199,7 @@ namespace HRTestWeb.Controllers
             }
 
             await _signInManager.SignInAsync(user, isPersistent: false);
-
-
-            // ⬇️ Điều hướng tập trung qua helper (ưu tiên Admin Area)
             return await RedirectAfterLoginAsync(user, returnUrl);
-
         }
         #endregion
 
@@ -218,7 +215,6 @@ namespace HRTestWeb.Controllers
         #endregion
 
         #region Forgot Password (Email -> OTP -> New Password)
-        // B1: Nhập email, gửi OTP (lưu trong AspNetUserTokens)
         [HttpGet]
         public IActionResult ForgotPassword()
         {
@@ -234,16 +230,10 @@ namespace HRTestWeb.Controllers
             if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.FindByEmailAsync(model.Email);
-            // Luôn trả về thông báo thành công để tránh lộ thông tin tồn tại email
             if (user != null)
             {
                 var code = NewOtp6();
-                var payload = ToJson(new
-                {
-                    code,
-                    exp = DateTimeOffset.UtcNow.AddMinutes(10)
-                });
-
+                var payload = ToJson(new { code, exp = DateTimeOffset.UtcNow.AddMinutes(10) });
                 await _userManager.SetAuthenticationTokenAsync(user, Provider, OtpName, payload);
 
                 var html = $@"
@@ -259,7 +249,6 @@ namespace HRTestWeb.Controllers
             return RedirectToAction(nameof(VerifyOtp), new { email = model.Email });
         }
 
-        // B2: Nhập OTP, sinh ResetPasswordToken (lưu tạm trong AspNetUserTokens)
         [HttpGet]
         public IActionResult VerifyOtp(string email)
         {
@@ -307,12 +296,11 @@ namespace HRTestWeb.Controllers
 
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
             await _userManager.SetAuthenticationTokenAsync(user, Provider, ResetTokenName, resetToken);
-            await _userManager.RemoveAuthenticationTokenAsync(user, Provider, OtpName); // không cho dùng lại
+            await _userManager.RemoveAuthenticationTokenAsync(user, Provider, OtpName);
 
             return RedirectToAction(nameof(ResetPassword), new { email = model.Email });
         }
 
-        // B3: Nhập mật khẩu mới, thực thi ResetPassword bằng token đã lưu
         [HttpGet]
         public async Task<IActionResult> ResetPassword(string email)
         {
@@ -356,8 +344,6 @@ namespace HRTestWeb.Controllers
             }
 
             await _userManager.RemoveAuthenticationTokenAsync(user, Provider, ResetTokenName);
-
-            TempData["Success"] = "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.";
             return RedirectToAction(nameof(Login));
         }
         #endregion
