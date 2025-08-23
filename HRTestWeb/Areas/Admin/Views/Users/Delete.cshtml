@@ -1,0 +1,29 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.UserDetailsVM
+@{
+    ViewData["Title"] = "Xoá người dùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <h4 class="mb-3 text-danger">Bạn chắc chắn muốn xoá người dùng này?</h4>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Họ tên</dt>
+                <dd class="col-sm-9">@Model.FullName</dd>
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+                <dt class="col-sm-3">Phòng ban</dt>
+                <dd class="col-sm-9">@Model.Department</dd>
+                <dt class="col-sm-3">Vai trò</dt>
+                <dd class="col-sm-9">@string.Join(", ", Model.Roles)</dd>
+            </dl>
+        </div>
+    </div>
+
+    <form asp-area="Admin" asp-controller="Users" asp-action="Delete" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Users" asp-action="Index">Huỷ</a>
+        <button class="btn btn-danger" type="submit">Xoá</button>
+    </form>
+</div>

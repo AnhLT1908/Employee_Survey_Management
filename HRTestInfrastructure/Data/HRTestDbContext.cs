@@ -9,6 +9,7 @@ namespace HRTestInfrastructure.Data
     {
         public HRTestDbContext(DbContextOptions<HRTestDbContext> options) : base(options) { }
 
+        public DbSet<Level> Levels => Set<Level>();
         public DbSet<Department> Departments => Set<Department>();
         public DbSet<QuestionBank> QuestionBanks => Set<QuestionBank>();
         public DbSet<Question> Questions => Set<Question>();
@@ -126,6 +127,28 @@ namespace HRTestInfrastructure.Data
                 .WithMany()
                 .HasForeignKey(u => u.DepartmentId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+
+            modelBuilder.Entity<ApplicationUser>()
+    .HasOne(u => u.Level)
+    .WithMany()
+    .HasForeignKey(u => u.LevelId)
+    .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Level>()
+                .HasIndex(x => x.Name).IsUnique();
+
+            // Seed sẵn các level
+            modelBuilder.Entity<Level>().HasData(
+                new Level { Id = 1, Name = "Intern" },
+                new Level { Id = 2, Name = "Fresher" },
+                new Level { Id = 3, Name = "Junior" },
+                new Level { Id = 4, Name = "Middle" },
+                new Level { Id = 5, Name = "Senior" },
+                new Level { Id = 6, Name = "Lead" },
+                new Level { Id = 7, Name = "Principal" },
+                new Level { Id = 8, Name = "Manager" }
+            );
 
             // -------- Indexes hữu ích --------
             modelBuilder.Entity<TestAttempt>().HasIndex(x => new { x.TestId, x.UserId });

@@ -68,3 +68,29 @@
     transform: translateX(3px);
     color: #6c757d;
 }
+
+/* Card & section */
+.admin-page .card {
+    border-radius: 16px;
+}
+
+.admin-tabs .nav-link {
+    border-radius: 20px;
+}
+
+/* Buttons look a bit softer */
+.btn {
+    border-radius: 10px;
+}
+
+/* Table */
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* Responsive tweak */
+@media (max-width: 576px) {
+    .pagination .page-link {
+        padding: .35rem .6rem;
+    }
+}

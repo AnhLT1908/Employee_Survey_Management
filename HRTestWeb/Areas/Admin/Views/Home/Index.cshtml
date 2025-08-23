@@ -20,7 +20,9 @@
         <!-- Tabs điều hướng -->
         <ul class="nav nav-pills admin-tabs mb-4">
             <li class="nav-item"><a class="nav-link active" asp-area="Admin" asp-controller="Home" asp-action="Index">Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Users" asp-action="Index">Quản lý người dùng</a></li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="Admin" asp-controller="Users" asp-action="Index">Quản lý người dùng</a>
+            </li>
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">Quản lý bộ câu hỏi</a></li>
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Tests" asp-action="Index">Quản lý bài test</a></li>
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Grading" asp-action="Index">Chấm điểm & đánh giá</a></li>
@@ -98,3 +100,20 @@
 
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+          const t = sessionStorage.getItem('dev_jwt');
+          if (t) {
+            console.log('JWT (dev) on Admin Home:', t);
+          } else {
+            console.log('Không có JWT trong sessionStorage (prod sẽ không lộ token).');
+          }
+          fetch('/api/auth/me', { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(d => console.log('Auth /api/auth/me (admin):', d))
+            .catch(err => console.warn('auth/me error', err));
+        })();
+    </script>
+}

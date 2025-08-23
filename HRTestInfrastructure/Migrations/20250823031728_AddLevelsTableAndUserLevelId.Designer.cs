@@ -4,6 +4,7 @@ using HRTestInfrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRTestInfrastructure.Migrations
 {
     [DbContext(typeof(HRTestDbContext))]
-    partial class HRTestDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250823031728_AddLevelsTableAndUserLevelId")]
+    partial class AddLevelsTableAndUserLevelId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

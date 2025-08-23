@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRTestInfrastructure.Migrations
 {
     [DbContext(typeof(HRTestDbContext))]
-    [Migration("20250822041006_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250823032014_DropOldStringLevel")]
+    partial class DropOldStringLevel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -186,6 +186,71 @@ namespace HRTestInfrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Feedbacks");
+                });
+
+            modelBuilder.Entity("HRTestDomain.Entities.Level", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Levels");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Intern"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Fresher"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Junior"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Middle"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Senior"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Lead"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "Principal"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = "Manager"
+                        });
                 });
 
             modelBuilder.Entity("HRTestDomain.Entities.Notification", b =>
@@ -404,8 +469,8 @@ namespace HRTestInfrastructure.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Level")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("LevelId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -443,6 +508,8 @@ namespace HRTestInfrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DepartmentId");
+
+                    b.HasIndex("LevelId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -694,6 +761,13 @@ namespace HRTestInfrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HRTestDomain.Entities.Level", "Level")
+                        .WithMany()
+                        .HasForeignKey("LevelId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Level");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -1,0 +1,249 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.UserIndexVM
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <style>
+        /* Chỉ dành riêng cho trang này (bổ sung nhẹ ngoài admin.css) */
+        .fade-in {
+            animation: fadeIn .25s ease-in;
+        }
+
+         @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(4px)
+        }
+
+        to {
+            opacity: 1;
+            transform: none
+        }
+
+        }
+
+        .filter-card .form-control, .filter-card .form-select {
+            transition: box-shadow .15s ease, border-color .15s;
+        }
+
+            .filter-card .form-control:focus, .filter-card .form-select:focus {
+                box-shadow: 0 0 0 .2rem rgba(0,0,0,.05);
+            }
+
+        .btn-reset {
+            border: 1px solid var(--bs-border-color);
+            background: #fff;
+            transition: all .15s ease;
+        }
+
+            .btn-reset:hover {
+                box-shadow: 0 2px 10px rgba(0,0,0,.08);
+                transform: translateY(-1px);
+            }
+
+        .table thead th {
+            font-weight: 600;
+            letter-spacing: .2px;
+        }
+
+        .table-hover tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .badge-filter {
+            background: #f5f5f7;
+            border: 1px solid var(--bs-border-color);
+            color: #555;
+            font-weight: 500;
+        }
+
+        .pagination .page-link {
+            border-radius: .5rem;
+            transition: box-shadow .15s ease, transform .15s;
+        }
+
+            .pagination .page-link:hover {
+                box-shadow: 0 2px 12px rgba(0,0,0,.08);
+                transform: translateY(-1px);
+            }
+    </style>
+}
+
+<div class="container py-4 fade-in">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="m-0 fw-semibold">Quản lý người dùng</h3>
+            <div class="text-muted small">Xem, lọc theo phòng ban & vai trò, thao tác chi tiết</div>
+        </div>
+        <a class="btn btn-primary shadow-sm" asp-area="Admin" asp-controller="Users" asp-action="Create">+ Thêm người dùng</a>
+    </div>
+
+    <!-- Filter -->
+    <form method="get" class="card shadow-sm mb-3 filter-card">
+        <div class="card-body row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label">Tìm kiếm</label>
+                <input type="text" name="q" value="@Model.Q" class="form-control" placeholder="Họ tên hoặc email..." />
+            </div>
+            <div class="col-sm-3">
+                <label class="form-label">Phòng ban</label>
+                @Html.DropDownList(
+                "departmentId",
+                                Model.Departments,               // chỉ chứa các phòng ban thật
+                                "Tất cả phòng ban",              // option label (chỉ 1 lần)
+                                new { @class = "form-select" })
+            </div>
+
+            <div class="col-sm-3">
+                <label class="form-label">Vai trò</label>
+                @Html.DropDownList(
+                                "role",
+                                Model.Roles,
+                                "Tất cả vai trò",
+                                new { @class = "form-select" })
+            </div>
+            <div class="col-12 col-md-2 text-end">
+                <button class="btn btn-outline-secondary me-2" type="submit">Lọc</button>
+                <a class="btn btn-reset" asp-area="Admin" asp-controller="Users" asp-action="Index">Xóa lọc</a>
+            </div>
+        </div>
+
+        @* chips hiển thị tiêu chí đã chọn *@
+        @if (!string.IsNullOrWhiteSpace(Model.Q) || Model.DepartmentId.HasValue || (!string.IsNullOrWhiteSpace(Model.Role) && Model.Role != "_all"))
+        {
+            <div class="card-footer bg-white">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="text-muted small me-1">Đang lọc:</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.Q))
+                    {
+                        <span class="badge rounded-pill badge-filter">Từ khóa: “@Model.Q”</span>
+                    }
+                    @if (Model.DepartmentId.HasValue)
+                    {
+                        var deptText = Model.Departments.FirstOrDefault(x => x.Value == Model.DepartmentId.Value.ToString())?.Text;
+                        if (!string.IsNullOrWhiteSpace(deptText))
+                        {
+                            <span class="badge rounded-pill badge-filter">Phòng ban: @deptText</span>
+                        }
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Role) && Model.Role != "_all")
+                    {
+                        var roleText = Model.Roles.FirstOrDefault(x => x.Value == Model.Role)?.Text;
+                        if (!string.IsNullOrWhiteSpace(roleText))
+                        {
+                            <span class="badge rounded-pill badge-filter">Vai trò: @roleText</span>
+                        }
+                    }
+                    <a class="ms-auto btn btn-sm btn-reset" asp-area="Admin" asp-controller="Users" asp-action="Index">Xóa tất cả</a>
+                </div>
+            </div>
+        }
+    </form>
+
+    <!-- Table -->
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:28%">Họ tên</th>
+                        <th style="width:26%">Email</th>
+                        <th style="width:20%">Phòng ban</th>
+                        <th>Vai trò</th>
+                        <th style="width:180px" class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Items.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">Không có dữ liệu.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var u in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-medium">@u.FullName</td>
+                                <td>@u.Email</td>
+                                <td>@u.Department</td>
+                                <td>@u.Roles</td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-secondary me-1"
+                                       asp-area="Admin" asp-controller="Users" asp-action="Details" asp-route-id="@u.Id">Xem</a>
+                                    <a class="btn btn-sm btn-outline-primary me-1"
+                                       asp-area="Admin" asp-controller="Users" asp-action="Edit" asp-route-id="@u.Id">Sửa</a>
+                                    <a class="btn btn-sm btn-outline-danger"
+                                       asp-area="Admin" asp-controller="Users" asp-action="Delete" asp-route-id="@u.Id">Xoá</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <div class="text-muted small">
+                    @{
+                        var from = (Model.Page - 1) * Model.PageSize + 1;
+                        var to = Math.Min(Model.Page * Model.PageSize, Model.TotalItems);
+                    }
+                    Hiển thị @from–@to / @Model.TotalItems
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        @{
+                            string MakeLink(int p) => Url.Action("Index", new
+                            {
+                                q = Model.Q,
+                                departmentId = Model.DepartmentId,
+                                role = Model.Role,
+                                page = p,
+                                pageSize = Model.PageSize
+                            })!;
+                            var prevDisabled = Model.Page <= 1 ? " disabled" : "";
+                            var nextDisabled = Model.Page >= Model.TotalPages ? " disabled" : "";
+                        }
+                        <li class="page-item@prevDisabled">
+                            <a class="page-link" href="@(Model.Page > 1 ? MakeLink(Model.Page - 1) : "#")" aria-label="Trang trước">‹</a>
+                        </li>
+                        @for (var p = 1; p <= Model.TotalPages; p++)
+                        {
+                            var active = p == Model.Page ? " active" : "";
+                            <li class="page-item@active">
+                                <a class="page-link" href="@MakeLink(p)">@p</a>
+                            </li>
+                        }
+                        <li class="page-item@nextDisabled">
+                            <a class="page-link" href="@(Model.Page<Model.TotalPages? MakeLink(Model.Page + 1) : "#")" aria-label="Trang sau">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Đặt selected cho dropdown theo giá trị đang lọc (trong trường hợp SelectList chưa set Selected)
+        (function () {
+            const dept = document.querySelector('select[name="departmentId"]');
+            const role = document.querySelector('select[name="role"]');
+            if (dept && '@Model.DepartmentId' !== '' && '@Model.DepartmentId' !== '0') {
+                const v = '@Model.DepartmentId';
+                if (v) dept.value = v;
+            }
+            if (role && '@Model.Role' !== '') {
+                role.value = '@Model.Role';
+            }
+        })();
+    </script>
+}

@@ -1,0 +1,54 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.UserEditVM
+@{
+    ViewData["Title"] = "Sửa người dùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <h4 class="mb-3">Sửa người dùng</h4>
+
+    <!-- KHÔNG cần asp-route-id -->
+    <form asp-area="Admin" asp-controller="Users" asp-action="Edit" method="post" class="card">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="Id" />
+
+        <div class="card-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" disabled />
+                    <!-- quan trọng: hidden để giá trị Email vẫn được post -->
+                    <input type="hidden" asp-for="Email" />
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="DepartmentId" class="form-label"></label>
+                    <select asp-for="DepartmentId" class="form-select" asp-items="Model.Departments">
+                        <option value="">-- Chọn phòng ban --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Vai trò</label>
+                    <select asp-for="SelectedRoles" class="form-select" asp-items="Model.AllRoles" multiple size="5"></select>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Users" asp-action="Index">Huỷ</a>
+            <button class="btn btn-primary" type="submit">Lưu</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

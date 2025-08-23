@@ -80,6 +80,13 @@
               });
               if (res.ok) {
                 const payload = await res.json();
+                // DEV ONLY: in ra & lưu bản sao để trang Home có thể đọc
+                if (payload.token) {
+                  console.log('JWT (dev):', payload.token);
+                  try { sessionStorage.setItem('dev_jwt', payload.token); } catch {}
+                } else {
+                  console.log('Đã đăng nhập. JWT nằm trong cookie HttpOnly.');
+                }
                 window.location.href = payload.redirectUrl || '/';
               } else {
                 const err = await res.json().catch(() => ({ message: 'Đăng nhập thất bại' }));

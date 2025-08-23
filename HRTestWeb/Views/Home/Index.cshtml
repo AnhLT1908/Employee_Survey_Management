@@ -155,3 +155,21 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+          const t = sessionStorage.getItem('dev_jwt');
+          if (t) {
+            console.log('JWT (dev) on Home:', t);
+          } else {
+            console.log('Không có JWT trong sessionStorage (prod sẽ không lộ token).');
+          }
+          // Log trạng thái đăng nhập hiện tại
+          fetch('/api/auth/me', { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(d => console.log('Auth /api/auth/me:', d))
+            .catch(err => console.warn('auth/me error', err));
+        })();
+    </script>
+}
