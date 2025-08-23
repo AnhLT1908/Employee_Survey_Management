@@ -206,48 +206,6 @@ namespace HRTestInfrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Levels");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Intern"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Fresher"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Junior"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Middle"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Senior"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Name = "Lead"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Name = "Principal"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Name = "Manager"
-                        });
                 });
 
             modelBuilder.Entity("HRTestDomain.Entities.Notification", b =>
@@ -310,10 +268,6 @@ namespace HRTestInfrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<string>("Skill")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
@@ -339,9 +293,57 @@ namespace HRTestInfrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("SkillId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("SkillId");
+
                     b.ToTable("QuestionBanks");
+                });
+
+            modelBuilder.Entity("HRTestDomain.Entities.Skill", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Skills");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Ngôn ngữ C#",
+                            Name = "C#"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Cơ sở dữ liệu & truy vấn",
+                            Name = "SQL"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Kiểm thử phần mềm",
+                            Name = "QA"
+                        });
                 });
 
             modelBuilder.Entity("HRTestDomain.Entities.Test", b =>
@@ -722,6 +724,16 @@ namespace HRTestInfrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HRTestDomain.Entities.QuestionBank", b =>
+                {
+                    b.HasOne("HRTestDomain.Entities.Skill", "Skill")
+                        .WithMany("QuestionBanks")
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Skill");
+                });
+
             modelBuilder.Entity("HRTestDomain.Entities.TestAttempt", b =>
                 {
                     b.HasOne("HRTestDomain.Entities.Test", null)
@@ -816,6 +828,11 @@ namespace HRTestInfrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HRTestDomain.Entities.Skill", b =>
+                {
+                    b.Navigation("QuestionBanks");
                 });
 #pragma warning restore 612, 618
         }

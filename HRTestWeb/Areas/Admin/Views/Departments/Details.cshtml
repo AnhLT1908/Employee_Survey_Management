@@ -1,0 +1,26 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.DepartmentDetailsVM
+@{
+    ViewData["Title"] = "Chi tiết phòng ban";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="mb-3">Chi tiết phòng ban</h4>
+            <dl class="row">
+                <dt class="col-sm-3">Tên phòng ban</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+
+                <dt class="col-sm-3">Mô tả</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+
+                <dt class="col-sm-3">Số nhân viên</dt>
+                <dd class="col-sm-9">@Model.MemberCount</dd>
+            </dl>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Departments" asp-action="Index">Về danh sách</a>
+            <a class="btn btn-primary" asp-area="Admin" asp-controller="Departments" asp-action="Edit" asp-route-id="@Model.Id">Sửa</a>
+        </div>
+    </div>
+</div>

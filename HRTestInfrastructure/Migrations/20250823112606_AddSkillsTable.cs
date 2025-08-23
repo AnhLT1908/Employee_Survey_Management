@@ -5,7 +5,7 @@
 namespace HRTestInfrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class DropOldStringLevel : Migration
+    public partial class AddSkillsTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

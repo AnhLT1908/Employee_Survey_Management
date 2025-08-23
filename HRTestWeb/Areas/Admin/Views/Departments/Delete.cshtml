@@ -1,0 +1,23 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.DepartmentDetailsVM
+@{
+    ViewData["Title"] = "Xoá phòng ban";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <form asp-area="Admin" asp-controller="Departments" asp-action="Delete" method="post" class="card shadow-sm">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="card-body">
+            <h4 class="mb-3 text-danger">Xác nhận xoá</h4>
+            <p>Bạn có chắc muốn xoá phòng ban <strong>@Model.Name</strong>?</p>
+            <p class="text-muted small">Số nhân viên hiện có: @Model.MemberCount</p>
+            @if (TempData["Error"] is string err && !string.IsNullOrWhiteSpace(err))
+            {
+                <div class="alert alert-danger">@err</div>
+            }
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Departments" asp-action="Index">Huỷ</a>
+            <button class="btn btn-danger" type="submit">Xoá</button>
+        </div>
+    </form>
+</div>

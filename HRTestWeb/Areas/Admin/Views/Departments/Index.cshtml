@@ -1,0 +1,126 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.DepartmentIndexVM
+@{
+    ViewData["Title"] = "Quản lý phòng ban";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="m-0">Quản lý phòng ban</h3>
+            <div class="text-muted small">Tìm kiếm, phân trang; thao tác thêm/sửa/xoá/xem chi tiết.</div>
+        </div>
+        <a class="btn btn-primary" asp-area="Admin" asp-controller="Departments" asp-action="Create">+ Thêm phòng ban</a>
+    </div>
+
+    <form method="get" class="card shadow-sm mb-3">
+        <div class="card-body row g-2 align-items-end">
+            <div class="col-sm-4">
+                <label class="form-label">Tìm kiếm</label>
+                <input class="form-control" name="q" value="@Model.Q" placeholder="Tên hoặc mô tả..." />
+            </div>
+            <div class="col-sm-2">
+                <label class="form-label">Hiển thị</label>
+                <select class="form-select" name="pageSize">
+                    @{
+                        int[] sizes = new[] { 5, 10, 20, 50 };
+                        foreach (var s in sizes)
+                        {
+                            <option value="@s" selected="@(s==Model.PageSize)">@s / trang</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-sm-6 text-end">
+                <button class="btn btn-outline-secondary me-2" type="submit">Lọc</button>
+                <a class="btn btn-link text-decoration-none" asp-area="Admin" asp-controller="Departments" asp-action="Index">Xoá lọc</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:28%">Tên phòng ban</th>
+                        <th>Mô tả</th>
+                        <th style="width:140px" class="text-center">Nhân viên</th>
+                        <th style="width:170px" class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">Không có dữ liệu.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var d in Model.Items)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@d.Name</td>
+                            <td>@d.Description</td>
+                            <td class="text-center">@d.MemberCount</td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                       asp-area="Admin" asp-controller="Departments" asp-action="Details" asp-route-id="@d.Id">Xem</a>
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       asp-area="Admin" asp-controller="Departments" asp-action="Edit" asp-route-id="@d.Id">Sửa</a>
+
+                                    <form asp-area="Admin" asp-controller="Departments" asp-action="Delete" asp-route-id="@d.Id"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('Xoá phòng ban &quot;@d.Name&quot;?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Xoá</button>
+                                    </form>
+                                </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <div class="text-muted small">
+                    @{
+                        var from = (Model.Page - 1) * Model.PageSize + 1;
+                        var to = Math.Min(Model.Page * Model.PageSize, Model.TotalItems);
+                    }
+                    Hiển thị @from–@to / @Model.TotalItems
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        @{
+                            string MakeLink(int p) => Url.Action("Index", new {
+                                q = Model.Q, page = p, pageSize = Model.PageSize
+                            })!;
+                            var prevDisabled = Model.Page <= 1 ? " disabled" : "";
+                            var nextDisabled = Model.Page >= Model.TotalPages ? " disabled" : "";
+                        }
+                        <li class="page-item@prevDisabled">
+                            <a class="page-link" href="@(Model.Page > 1 ? MakeLink(Model.Page - 1) : "#")">‹</a>
+                        </li>
+                        @for (var p = 1; p <= Model.TotalPages; p++)
+                        {
+                            var active = p == Model.Page ? " active" : "";
+                            <li class="page-item@active">
+                                <a class="page-link" href="@MakeLink(p)">@p</a>
+                            </li>
+                        }
+                        <li class="page-item@nextDisabled">
+                            <a class="page-link" href="@(Model.Page < Model.TotalPages ? MakeLink(Model.Page + 1) : "#")">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>

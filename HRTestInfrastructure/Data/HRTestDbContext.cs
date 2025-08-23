@@ -11,6 +11,7 @@ namespace HRTestInfrastructure.Data
 
         public DbSet<Level> Levels => Set<Level>();
         public DbSet<Department> Departments => Set<Department>();
+        public DbSet<Skill> Skills => Set<Skill>();                 // <-- NEW
         public DbSet<QuestionBank> QuestionBanks => Set<QuestionBank>();
         public DbSet<Question> Questions => Set<Question>();
         public DbSet<Test> Tests => Set<Test>();
@@ -26,131 +27,114 @@ namespace HRTestInfrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // -------- Precision cho các decimal (tránh truncate) --------
+            // -------- Precision --------
             modelBuilder.Entity<Question>().Property(p => p.Score).HasPrecision(10, 2);
             modelBuilder.Entity<Answer>().Property(p => p.Score).HasPrecision(10, 2);
             modelBuilder.Entity<Test>().Property(p => p.PassScore).HasPrecision(10, 2);
             modelBuilder.Entity<TestAttempt>().Property(p => p.TotalScore).HasPrecision(10, 2);
 
-            // -------- QUAN HỆ (FK) GIỮA CÁC BẢNG --------
+            // -------- Quan hệ --------
 
-            // Question -> QuestionBank (n-N)
+            // Question -> QuestionBank (n-1)
             modelBuilder.Entity<Question>()
-                .HasOne<QuestionBank>()             // không cần navigation cũng được
+                .HasOne<QuestionBank>()
                 .WithMany()
                 .HasForeignKey(q => q.BankId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // TestQuestion -> Test (n-1) & -> Question (n-1)
+            // NEW: QuestionBank -> Skill (n-1, optional)
+            modelBuilder.Entity<QuestionBank>()
+                .HasOne(qb => qb.Skill)
+                .WithMany(s => s.QuestionBanks)
+                .HasForeignKey(qb => qb.SkillId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // TestQuestion -> Test & Question
             modelBuilder.Entity<TestQuestion>()
-                .HasOne<Test>()
-                .WithMany()
+                .HasOne<Test>().WithMany()
                 .HasForeignKey(tq => tq.TestId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<TestQuestion>()
-                .HasOne<Question>()
-                .WithMany()
+                .HasOne<Question>().WithMany()
                 .HasForeignKey(tq => tq.QuestionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Assignment -> Test (n-1)
+            // Assignment -> Test
             modelBuilder.Entity<Assignment>()
-                .HasOne<Test>()
-                .WithMany()
+                .HasOne<Test>().WithMany()
                 .HasForeignKey(a => a.TestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // TestAttempt -> Test (n-1)
+            // TestAttempt -> Test
             modelBuilder.Entity<TestAttempt>()
-                .HasOne<Test>()
-                .WithMany()
+                .HasOne<Test>().WithMany()
                 .HasForeignKey(a => a.TestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // TestAttempt -> AspNetUsers (n-1)
+            // TestAttempt -> AspNetUsers
             modelBuilder.Entity<TestAttempt>()
-                .HasOne<ApplicationUser>()
-                .WithMany()
+                .HasOne<ApplicationUser>().WithMany()
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Answer -> TestAttempt (n-1) & -> Question (n-1)
+            // Answer -> Attempt & Question
             modelBuilder.Entity<Answer>()
-                .HasOne<TestAttempt>()
-                .WithMany()
+                .HasOne<TestAttempt>().WithMany()
                 .HasForeignKey(a => a.AttemptId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<Answer>()
-                .HasOne<Question>()
-                .WithMany()
+                .HasOne<Question>().WithMany()
                 .HasForeignKey(a => a.QuestionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Feedback -> TestAttempt (0..1-n)  &  -> Test (0..1-n)  &  -> AspNetUsers (n-1)
+            // Feedback -> Attempt/Test/User
             modelBuilder.Entity<Feedback>()
-                .HasOne<TestAttempt>()
-                .WithMany()
+                .HasOne<TestAttempt>().WithMany()
                 .HasForeignKey(f => f.AttemptId)
                 .OnDelete(DeleteBehavior.SetNull);
-
             modelBuilder.Entity<Feedback>()
-      .HasOne<Test>()
-      .WithMany()
-      .HasForeignKey(f => f.TestId)
-      .OnDelete(DeleteBehavior.Restrict);
-
+                .HasOne<Test>().WithMany()
+                .HasForeignKey(f => f.TestId)
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Feedback>()
-                .HasOne<ApplicationUser>()
-                .WithMany()
+                .HasOne<ApplicationUser>().WithMany()
                 .HasForeignKey(f => f.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Notification -> AspNetUsers (n-1)
+            // Notification -> User
             modelBuilder.Entity<Notification>()
-                .HasOne<ApplicationUser>()
-                .WithMany()
+                .HasOne<ApplicationUser>().WithMany()
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // AuditLog -> AspNetUsers (n-1)
+            // AuditLog -> User
             modelBuilder.Entity<AuditLog>()
-                .HasOne<ApplicationUser>()
-                .WithMany()
+                .HasOne<ApplicationUser>().WithMany()
                 .HasForeignKey(a => a.ActorUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ApplicationUser -> Department (0..1-n)
+            // User -> Department, Level
             modelBuilder.Entity<ApplicationUser>()
-                .HasOne<Department>()
-                .WithMany()
+                .HasOne<Department>().WithMany()
                 .HasForeignKey(u => u.DepartmentId)
                 .OnDelete(DeleteBehavior.SetNull);
-
-
             modelBuilder.Entity<ApplicationUser>()
-    .HasOne(u => u.Level)
-    .WithMany()
-    .HasForeignKey(u => u.LevelId)
-    .OnDelete(DeleteBehavior.SetNull);
+                .HasOne(u => u.Level).WithMany()
+                .HasForeignKey(u => u.LevelId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<Level>()
-                .HasIndex(x => x.Name).IsUnique();
+            // Index
+            modelBuilder.Entity<Level>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<Skill>().HasIndex(x => x.Name).IsUnique(); // <-- NEW
 
-            // Seed sẵn các level
-            modelBuilder.Entity<Level>().HasData(
-                new Level { Id = 1, Name = "Intern" },
-                new Level { Id = 2, Name = "Fresher" },
-                new Level { Id = 3, Name = "Junior" },
-                new Level { Id = 4, Name = "Middle" },
-                new Level { Id = 5, Name = "Senior" },
-                new Level { Id = 6, Name = "Lead" },
-                new Level { Id = 7, Name = "Principal" },
-                new Level { Id = 8, Name = "Manager" }
+            // (Tuỳ chọn) seed một vài skill cơ bản
+            modelBuilder.Entity<Skill>().HasData(
+                new Skill { Id = 1, Name = "C#", Description = "Ngôn ngữ C#" },
+                new Skill { Id = 2, Name = "SQL", Description = "Cơ sở dữ liệu & truy vấn" },
+                new Skill { Id = 3, Name = "QA", Description = "Kiểm thử phần mềm" }
             );
 
-            // -------- Indexes hữu ích --------
+            // Indexes hữu ích
             modelBuilder.Entity<TestAttempt>().HasIndex(x => new { x.TestId, x.UserId });
             modelBuilder.Entity<Answer>().HasIndex(x => new { x.AttemptId, x.QuestionId });
             modelBuilder.Entity<Assignment>().HasIndex(x => new { x.TestId, x.TargetType, x.TargetValue });

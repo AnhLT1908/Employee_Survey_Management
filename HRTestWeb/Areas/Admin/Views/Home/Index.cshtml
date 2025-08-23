@@ -23,7 +23,12 @@
             <li class="nav-item">
                 <a class="nav-link" asp-area="Admin" asp-controller="Users" asp-action="Index">Quản lý người dùng</a>
             </li>
-            <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">Quản lý bộ câu hỏi</a></li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="Admin" asp-controller="Departments" asp-action="Index">Quản lý phòng ban</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="Admin" asp-controller="Questions" asp-action="Index">Quản lý câu hỏi</a>
+            </li>
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Tests" asp-action="Index">Quản lý bài test</a></li>
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Grading" asp-action="Index">Chấm điểm & đánh giá</a></li>
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Settings" asp-action="Index">Cấu hình hệ thống</a></li>
@@ -42,12 +47,24 @@
                 </a>
             </div>
 
+
             <div class="col">
-                <a class="admin-card d-block text-decoration-none" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">
+                <a class="admin-card d-block text-decoration-none" asp-area="Admin" asp-controller="Departments" asp-action="Index">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body">
-                            <h5 class="card-title mb-1">Quản lý bộ câu hỏi</h5>
-                            <p class="card-text text-muted">Ngân hàng câu hỏi, phân loại kỹ năng/độ khó, import Excel.</p>
+                            <h5 class="card-title mb-1">Quản lý phòng ban</h5>
+                            <p class="card-text text-muted">Thêm/sửa/xóa phòng ban, phân bổ nhân viên.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a class="admin-card d-block text-decoration-none" asp-area="Admin" asp-controller="Questions" asp-action="Index">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title mb-1">Quản lý câu hỏi</h5>
+                            <p class="card-text text-muted">Tạo/sửa/xoá, phân loại theo kỹ năng & độ khó.</p>
                         </div>
                     </div>
                 </a>
