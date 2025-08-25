@@ -1,0 +1,21 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.SkillDetailsVM
+@{
+    ViewData["Title"] = "Chi tiết kỹ năng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="mb-3">@Model.Name</h4>
+            <dl class="row">
+                <dt class="col-sm-2">Mô tả</dt>
+                <dd class="col-sm-10">@Model.Description</dd>
+            </dl>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Skills" asp-action="Index">Quay lại</a>
+            <a class="btn btn-primary" asp-area="Admin" asp-controller="Skills" asp-action="Edit" asp-route-id="@Model.Id">Sửa</a>
+            <a class="btn btn-danger" asp-area="Admin" asp-controller="Skills" asp-action="Delete" asp-route-id="@Model.Id">Xoá</a>
+        </div>
+    </div>
+</div>

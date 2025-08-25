@@ -1,0 +1,20 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.SkillDetailsVM
+@{
+    ViewData["Title"] = "Xoá kỹ năng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <form asp-area="Admin" asp-controller="Skills" asp-action="Delete" method="post" class="card">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="card-body">
+            <h5 class="text-danger mb-3">Bạn có chắc muốn xoá kỹ năng này?</h5>
+            <div><strong>@Model.Name</strong></div>
+            <div class="text-muted">@Model.Description</div>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Skills" asp-action="Index">Huỷ</a>
+            <button class="btn btn-danger" type="submit">Xoá</button>
+        </div>
+    </form>
+</div>

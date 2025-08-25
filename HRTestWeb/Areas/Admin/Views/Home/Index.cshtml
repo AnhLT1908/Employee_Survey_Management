@@ -32,6 +32,7 @@
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Tests" asp-action="Index">Quản lý bài test</a></li>
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Grading" asp-action="Index">Chấm điểm & đánh giá</a></li>
             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Settings" asp-action="Index">Cấu hình hệ thống</a></li>
+            <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Skills" asp-action="Index">Quản lý kỹ năng</a></li>
         </ul>
 
         <!-- Lưới thẻ nhanh (chỉ chữ, không icon) -->
@@ -112,7 +113,31 @@
                         </div>
                     </div>
                 </a>
-            </div>
+            </div
+
+      <div class="col">
+  <a class="admin-card d-block text-decoration-none"
+     asp-area="Admin" asp-controller="Skills" asp-action="Index">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-1">Quản lý danh mục kĩ năng</h5>
+        <p class="card-text text-muted">Thêm/sửa/xóa danh mục kĩ năng.</p>
+      </div>
+    </div>
+  </a>
+</div>
+        <div class="col">
+  <a class="admin-card d-block text-decoration-none"
+     asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-1">Quản lý ngân hàng câu hỏi</h5>
+        <p class="card-text text-muted">Thêm/sửa/xoá ngân hàng câu hỏi.</p>
+      </div>
+    </div>
+  </a>
+</div>
+
         </div>
 
     </div>

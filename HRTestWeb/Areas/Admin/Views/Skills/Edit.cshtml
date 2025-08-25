@@ -1,0 +1,34 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.SkillEditVM
+@{
+    ViewData["Title"] = "Sửa kỹ năng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <h4 class="mb-3">Sửa kỹ năng</h4>
+    <form asp-area="Admin" asp-controller="Skills" asp-action="Edit" method="post" class="card">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="card-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Skills" asp-action="Index">Huỷ</a>
+            <button class="btn btn-primary" type="submit">Lưu</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

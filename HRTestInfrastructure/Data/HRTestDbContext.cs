@@ -11,9 +11,9 @@ namespace HRTestInfrastructure.Data
 
         public DbSet<Level> Levels => Set<Level>();
         public DbSet<Department> Departments => Set<Department>();
-        public DbSet<Skill> Skills => Set<Skill>();                 // <-- NEW
         public DbSet<QuestionBank> QuestionBanks => Set<QuestionBank>();
         public DbSet<Question> Questions => Set<Question>();
+        public DbSet<Skill> Skills => Set<Skill>();            // NEW
         public DbSet<Test> Tests => Set<Test>();
         public DbSet<TestQuestion> TestQuestions => Set<TestQuestion>();
         public DbSet<Assignment> Assignments => Set<Assignment>();
@@ -42,11 +42,11 @@ namespace HRTestInfrastructure.Data
                 .HasForeignKey(q => q.BankId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // NEW: QuestionBank -> Skill (n-1, optional)
-            modelBuilder.Entity<QuestionBank>()
-                .HasOne(qb => qb.Skill)
-                .WithMany(s => s.QuestionBanks)
-                .HasForeignKey(qb => qb.SkillId)
+            // Question -> Skill (n-1, optional)
+            modelBuilder.Entity<Question>()
+                .HasOne(q => q.Skill)
+                .WithMany(s => s.Questions)
+                .HasForeignKey(q => q.SkillId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // TestQuestion -> Test & Question
@@ -54,6 +54,7 @@ namespace HRTestInfrastructure.Data
                 .HasOne<Test>().WithMany()
                 .HasForeignKey(tq => tq.TestId)
                 .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<TestQuestion>()
                 .HasOne<Question>().WithMany()
                 .HasForeignKey(tq => tq.QuestionId)
@@ -82,6 +83,7 @@ namespace HRTestInfrastructure.Data
                 .HasOne<TestAttempt>().WithMany()
                 .HasForeignKey(a => a.AttemptId)
                 .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Answer>()
                 .HasOne<Question>().WithMany()
                 .HasForeignKey(a => a.QuestionId)
@@ -92,10 +94,12 @@ namespace HRTestInfrastructure.Data
                 .HasOne<TestAttempt>().WithMany()
                 .HasForeignKey(f => f.AttemptId)
                 .OnDelete(DeleteBehavior.SetNull);
+
             modelBuilder.Entity<Feedback>()
                 .HasOne<Test>().WithMany()
                 .HasForeignKey(f => f.TestId)
                 .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Feedback>()
                 .HasOne<ApplicationUser>().WithMany()
                 .HasForeignKey(f => f.UserId)
@@ -118,21 +122,21 @@ namespace HRTestInfrastructure.Data
                 .HasOne<Department>().WithMany()
                 .HasForeignKey(u => u.DepartmentId)
                 .OnDelete(DeleteBehavior.SetNull);
+
             modelBuilder.Entity<ApplicationUser>()
                 .HasOne(u => u.Level).WithMany()
                 .HasForeignKey(u => u.LevelId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Index
+            // Indexes
             modelBuilder.Entity<Level>().HasIndex(x => x.Name).IsUnique();
-            modelBuilder.Entity<Skill>().HasIndex(x => x.Name).IsUnique(); // <-- NEW
 
-            // (Tuỳ chọn) seed một vài skill cơ bản
-            modelBuilder.Entity<Skill>().HasData(
-                new Skill { Id = 1, Name = "C#", Description = "Ngôn ngữ C#" },
-                new Skill { Id = 2, Name = "SQL", Description = "Cơ sở dữ liệu & truy vấn" },
-                new Skill { Id = 3, Name = "QA", Description = "Kiểm thử phần mềm" }
-            );
+            // Skill config (Unique Name)
+            modelBuilder.Entity<Skill>(b =>
+            {
+                b.Property(x => x.Name).HasMaxLength(200).IsRequired();
+                b.HasIndex(x => x.Name).IsUnique();
+            });
 
             // Indexes hữu ích
             modelBuilder.Entity<TestAttempt>().HasIndex(x => new { x.TestId, x.UserId });

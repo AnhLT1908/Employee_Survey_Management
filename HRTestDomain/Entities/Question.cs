@@ -10,5 +10,9 @@
         public string? OptionsJson { get; set; }
         public string? CorrectAnswerJson { get; set; }
         public decimal Score { get; set; } = 1m;
+
+        // NEW
+        public int? SkillId { get; set; }
+        public Skill? Skill { get; set; }
     }
 }

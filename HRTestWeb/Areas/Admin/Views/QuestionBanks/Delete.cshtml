@@ -1,0 +1,20 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.QuestionBankDetailsVM
+@{
+    ViewData["Title"] = "Xoá ngân hàng câu hỏi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <h4 class="mb-3 text-danger">Xoá ngân hàng câu hỏi</h4>
+    <div class="alert alert-warning">
+        Bạn có chắc muốn xoá <strong>@Model.Name</strong>?
+        @if (Model.QuestionCount > 0)
+        {
+            <div class="mt-1">Không thể xoá vì còn <strong>@Model.QuestionCount</strong> câu hỏi thuộc ngân hàng này.</div>
+        }
+    </div>
+    <form asp-area="Admin" asp-controller="QuestionBanks" asp-action="Delete" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">Huỷ</a>
+        <button class="btn btn-danger" type="submit" @(Model.QuestionCount > 0 ? "disabled" : null)>Xoá</button>
+    </form>
+</div>

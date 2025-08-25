@@ -155,6 +155,42 @@ if (!string.IsNullOrWhiteSpace(googleId) && !string.IsNullOrWhiteSpace(googleSec
 
 var app = builder.Build();
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+var email = "admin@fint.com";
+    var user = await userManager.FindByEmailAsync(email);
+
+    if (user == null)
+    {
+        user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true,
+            FullName = "Admin System"
+        };
+
+        var create = await userManager.CreateAsync(user, "Leanh2003");
+        if (!create.Succeeded)
+        {
+            throw new Exception("Seed user creation failed: " +
+                string.Join("; ", create.Errors.Select(e => e.Description)));
+        }
+
+        // (Tuỳ chọn) gán role mặc định
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        const string defaultRole = "Admin";
+        if (!await roleManager.RoleExistsAsync(defaultRole))
+            await roleManager.CreateAsync(new IdentityRole(defaultRole));
+        await userManager.AddToRoleAsync(user, defaultRole);
+    }
+
+
+}
+
 // ===== Auto-migrate (dev) =====
 using (var scope = app.Services.CreateScope())
 {

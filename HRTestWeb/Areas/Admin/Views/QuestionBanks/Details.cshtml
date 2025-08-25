@@ -1,0 +1,24 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.QuestionBankDetailsVM
+@{
+    ViewData["Title"] = "Chi tiết ngân hàng câu hỏi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <h4 class="mb-3">Chi tiết ngân hàng câu hỏi</h4>
+    <div class="card">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Tên ngân hàng</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+                <dt class="col-sm-3">Mô tả</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+                <dt class="col-sm-3">Số câu hỏi</dt>
+                <dd class="col-sm-9">@Model.QuestionCount</dd>
+            </dl>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">Quay lại</a>
+            <a class="btn btn-primary" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Edit" asp-route-id="@Model.Id">Sửa</a>
+        </div>
+    </div>
+</div>

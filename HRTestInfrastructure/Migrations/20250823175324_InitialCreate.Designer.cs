@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRTestInfrastructure.Migrations
 {
     [DbContext(typeof(HRTestDbContext))]
-    [Migration("20250823111507_InitialCreate")]
+    [Migration("20250823175324_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -271,12 +271,17 @@ namespace HRTestInfrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<int?>("SkillId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BankId");
+
+                    b.HasIndex("SkillId");
 
                     b.ToTable("Questions");
                 });
@@ -296,12 +301,7 @@ namespace HRTestInfrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SkillId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("SkillId");
 
                     b.ToTable("QuestionBanks");
                 });
@@ -319,7 +319,8 @@ namespace HRTestInfrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -327,26 +328,6 @@ namespace HRTestInfrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Skills");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Ngôn ngữ C#",
-                            Name = "C#"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Cơ sở dữ liệu & truy vấn",
-                            Name = "SQL"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Kiểm thử phần mềm",
-                            Name = "QA"
-                        });
                 });
 
             modelBuilder.Entity("HRTestDomain.Entities.Test", b =>
@@ -725,12 +706,9 @@ namespace HRTestInfrastructure.Migrations
                         .HasForeignKey("BankId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
 
-            modelBuilder.Entity("HRTestDomain.Entities.QuestionBank", b =>
-                {
                     b.HasOne("HRTestDomain.Entities.Skill", "Skill")
-                        .WithMany("QuestionBanks")
+                        .WithMany("Questions")
                         .HasForeignKey("SkillId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -835,7 +813,7 @@ namespace HRTestInfrastructure.Migrations
 
             modelBuilder.Entity("HRTestDomain.Entities.Skill", b =>
                 {
-                    b.Navigation("QuestionBanks");
+                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }

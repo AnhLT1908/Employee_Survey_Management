@@ -1,0 +1,115 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.QuestionBankIndexVM
+@{
+    ViewData["Title"] = "Quản lý ngân hàng câu hỏi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="m-0">Quản lý ngân hàng câu hỏi</h3>
+            <div class="text-muted small">Tìm kiếm, lọc theo kỹ năng, phân trang; thêm/sửa/xoá/xem chi tiết.</div>
+        </div>
+        <a class="btn btn-primary" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Create">+ Thêm ngân hàng</a>
+    </div>
+
+    <form method="get" class="card shadow-sm mb-3">
+        <div class="card-body row g-2 align-items-end">
+            <div class="col-sm-4">
+                <label class="form-label">Tìm kiếm</label>
+                <input class="form-control" name="q" value="@Model.Q" placeholder="Tên hoặc mô tả..." />
+            </div>
+            <div class="col-sm-4">
+                <label class="form-label">Kỹ năng</label>
+                <select class="form-select" name="skillId" asp-items="Model.Skills"></select>
+            </div>
+            <div class="col-sm-4 text-end">
+                <button class="btn btn-outline-secondary me-2" type="submit">Lọc</button>
+                <a class="btn btn-link text-decoration-none" asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index">Xoá lọc</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:28%">Tên ngân hàng</th>
+                        <th>Mô tả</th>
+                        <th style="width:140px" class="text-center">Số câu hỏi</th>
+                        <th style="width:170px" class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="4" class="text-center text-muted py-4">Không có dữ liệu.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var b in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@b.Name</td>
+                                <td>@b.Description</td>
+                                <td class="text-center">@b.QuestionCount</td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                       asp-area="Admin" asp-controller="QuestionBanks" asp-action="Details" asp-route-id="@b.Id">Xem</a>
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       asp-area="Admin" asp-controller="QuestionBanks" asp-action="Edit" asp-route-id="@b.Id">Sửa</a>
+                                    <a class="btn btn-sm btn-outline-danger"
+                                       asp-area="Admin" asp-controller="QuestionBanks" asp-action="Delete" asp-route-id="@b.Id">Xoá</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <div class="text-muted small">
+                    @{
+                        var from = (Model.Page - 1) * Model.PageSize + 1;
+                        var to = Math.Min(Model.Page * Model.PageSize, Model.TotalItems);
+                    }
+                    Hiển thị @from–@to / @Model.TotalItems
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        @{
+                            string MakeLink(int p) => Url.Action("Index", new
+                            {
+                                q = Model.Q,
+                                skillId = Model.SkillId,
+                                page = p
+                            })!;
+                            var prevDisabled = Model.Page <= 1 ? " disabled" : "";
+                            var nextDisabled = Model.Page >= Model.TotalPages ? " disabled" : "";
+                        }
+                        <li class="page-item@prevDisabled">
+                            <a class="page-link" href="@(Model.Page > 1 ? MakeLink(Model.Page - 1) : "#")">‹</a>
+                        </li>
+                        @for (var p = 1; p <= Model.TotalPages; p++)
+                        {
+                            var active = p == Model.Page ? " active" : "";
+                            <li class="page-item@active">
+                                <a class="page-link" href="@MakeLink(p)">@p</a>
+                            </li>
+                        }
+                        <li class="page-item@nextDisabled">
+                            <a class="page-link" href="@(Model.Page<Model.TotalPages? MakeLink(Model.Page + 1) : "#")">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
