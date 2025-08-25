@@ -1,0 +1,22 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.QuestionDetailsVM
+@{
+    ViewData["Title"] = "Xoá câu hỏi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <form asp-area="Admin" asp-controller="Questions" asp-action="Delete" method="post" class="card shadow-sm">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="card-body">
+            <h5 class="text-danger mb-3">Bạn chắc chắn muốn xoá câu hỏi này?</h5>
+            <p class="mb-2"><strong>Ngân hàng:</strong> @Model.BankName</p>
+            <p class="mb-2"><strong>Kỹ năng:</strong> @(Model.SkillName ?? "-")</p>
+            <p class="mb-2"><strong>Loại:</strong> @(Model.Type == 0 ? "MCQ" : Model.Type == 1 ? "Tự luận" : "Đúng/Sai")</p>
+            <p class="mb-2"><strong>Độ khó:</strong> @(Model.Difficulty == 0 ? "Junior" : Model.Difficulty == 1 ? "Middle" : "Senior")</p>
+            <pre class="mb-0">@Model.Content</pre>
+        </div>
+        <div class="card-footer text-end">
+            <a class="btn btn-secondary" asp-area="Admin" asp-controller="Questions" asp-action="Index">Huỷ</a>
+            <button class="btn btn-danger" type="submit">Xoá</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,151 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.QuestionIndexVM
+@{
+    ViewData["Title"] = "Quản lý câu hỏi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="m-0">Quản lý câu hỏi</h3>
+            <div class="text-muted small">Tìm kiếm & lọc theo Ngân hàng / Kỹ năng / Loại / Độ khó. 10 mục/trang.</div>
+        </div>
+        <a class="btn btn-primary" asp-area="Admin" asp-controller="Questions" asp-action="Create">+ Thêm câu hỏi</a>
+    </div>
+
+    <form method="get" class="card shadow-sm mb-3">
+        <div class="card-body row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Tìm kiếm</label>
+                <input class="form-control" name="q" value="@Model.Q" placeholder="Nội dung câu hỏi..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Ngân hàng</label>
+                <select class="form-select" name="bankId" asp-items="Model.Banks"></select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Kỹ năng</label>
+                <select class="form-select" name="skillId" asp-items="Model.Skills"></select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">Loại</label>
+                <select class="form-select" name="type" asp-items="Model.TypeItems"></select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Độ khó</label>
+                <select class="form-select" name="difficulty" asp-items="Model.DifficultyItems"></select>
+            </div>
+            <div class="col-12 text-end">
+                <button class="btn btn-outline-secondary me-2" type="submit">Lọc</button>
+                <a class="btn btn-link text-decoration-none" asp-area="Admin" asp-controller="Questions" asp-action="Index">Xoá lọc</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nội dung</th>
+                        <th style="width:16%">Ngân hàng</th>
+                        <th style="width:14%">Kỹ năng</th>
+                        <th style="width:10%">Loại</th>
+                        <th style="width:10%">Độ khó</th>
+                        <th style="width:8%" class="text-end">Điểm</th>
+                        <th style="width:170px" class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">Không có dữ liệu.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.Items)
+                        {
+                            string typeText = r.Type == 0 ? "MCQ" : (r.Type == 1 ? "Tự luận" : "Đúng/Sai");
+                            string diffText = r.Difficulty switch
+                            {
+                                0 => "Intern",
+                                1 => "Fresher",
+                                2 => "Junior",
+                                3 => "Middle",
+                                4 => "Senior",
+                                5 => "Lead",
+                                6 => "Manager",
+                                _ => "?"
+                            };
+
+                            var shortContent = r.Content?.Length > 80 ? r.Content.Substring(0, 80) + "…" : r.Content;
+
+                            <tr>
+                                <td class="text-truncate" style="max-width: 460px">@shortContent</td>
+                                <td>@r.BankName</td>
+                                <td>@(r.SkillName ?? "-")</td>
+                                <td>@typeText</td>
+                                <td>@diffText</td>
+                                <td class="text-end">@r.Score</td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                       asp-area="Admin" asp-controller="Questions" asp-action="Details" asp-route-id="@r.Id">Xem</a>
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       asp-area="Admin" asp-controller="Questions" asp-action="Edit" asp-route-id="@r.Id">Sửa</a>
+                                    <a class="btn btn-sm btn-outline-danger"
+                                       asp-area="Admin" asp-controller="Questions" asp-action="Delete" asp-route-id="@r.Id">Xoá</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <div class="text-muted small">
+                    @{
+                        var from = (Model.Page - 1) * Model.PageSize + 1;
+                        var to = Math.Min(Model.Page * Model.PageSize, Model.TotalItems);
+                    }
+                    Hiển thị @from–@to / @Model.TotalItems
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        @{
+                            string MakeLink(int p) => Url.Action("Index", new
+                            {
+                                q = Model.Q,
+                                bankId = Model.BankId,
+                                skillId = Model.SkillId,
+                                type = Model.Type,
+                                difficulty = Model.Difficulty,
+                                page = p
+                            })!;
+                            var prevDisabled = Model.Page <= 1 ? " disabled" : "";
+                            var nextDisabled = Model.Page >= Model.TotalPages ? " disabled" : "";
+                        }
+                        <li class="page-item@prevDisabled">
+                            <a class="page-link" href="@(Model.Page > 1 ? MakeLink(Model.Page - 1) : "#")">‹</a>
+                        </li>
+                        @for (var p = 1; p <= Model.TotalPages; p++)
+                        {
+                            var active = p == Model.Page ? " active" : "";
+                            <li class="page-item@active">
+                                <a class="page-link" href="@MakeLink(p)">@p</a>
+                            </li>
+                        }
+                        <li class="page-item@nextDisabled">
+                            <a class="page-link" href="@(Model.Page<Model.TotalPages? MakeLink(Model.Page + 1) : "#")">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>

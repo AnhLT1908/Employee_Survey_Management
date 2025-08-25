@@ -1,0 +1,21 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.QuestionEditVM
+@{
+    ViewData["Title"] = "Thêm câu hỏi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <h4 class="mb-3">Thêm câu hỏi</h4>
+    <form asp-area="Admin" asp-controller="Questions" asp-action="Create" method="post" class="card shadow-sm">
+        <div class="card-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            <partial name="_Form" model="Model" />
+        </div>
+        <div class="card-footer text-end">
+            <a class="btn btn-link" asp-area="Admin" asp-controller="Questions" asp-action="Index">Hủy</a>
+            <button class="btn btn-primary" type="submit">Lưu</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

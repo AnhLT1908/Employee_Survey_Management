@@ -1,0 +1,50 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.QuestionEditVM
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="BankId" class="form-label"></label>
+        <select asp-for="BankId" class="form-select" asp-items="Model.Banks">
+            <option value="">-- Chọn ngân hàng --</option>
+        </select>
+        <span asp-validation-for="BankId" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="SkillId" class="form-label"></label>
+        <select asp-for="SkillId" class="form-select" asp-items="Model.Skills">
+            <option value="">-- Không chọn --</option>
+        </select>
+        <span asp-validation-for="SkillId" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Content" class="form-label"></label>
+        <textarea asp-for="Content" class="form-control" rows="4" placeholder="Nhập nội dung câu hỏi"></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-3">
+        <label asp-for="Type" class="form-label"></label>
+        <select asp-for="Type" class="form-select" asp-items="Model.TypeItems"></select>
+        <span asp-validation-for="Type" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Difficulty" class="form-label"></label>
+        <select asp-for="Difficulty" class="form-select" asp-items="Model.DifficultyItems"></select>
+        <span asp-validation-for="Difficulty" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Score" class="form-label"></label>
+        <input asp-for="Score" class="form-control" type="number" step="0.25" min="0.01" />
+        <span asp-validation-for="Score" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="OptionsJson" class="form-label"></label>
+        <textarea asp-for="OptionsJson" class="form-control" rows="3" placeholder='VD: ["A","B","C","D"]'></textarea>
+        <div class="form-text">Áp dụng cho MCQ. Bỏ trống nếu không dùng.</div>
+    </div>
+    <div class="col-12">
+        <label asp-for="CorrectAnswerJson" class="form-label"></label>
+        <textarea asp-for="CorrectAnswerJson" class="form-control" rows="3" placeholder='VD: "B" hoặc ["A","C"]'></textarea>
+        <div class="form-text">Áp dụng cho MCQ/Đúng-Sai. Bỏ trống nếu không dùng.</div>
+    </div>
+</div>

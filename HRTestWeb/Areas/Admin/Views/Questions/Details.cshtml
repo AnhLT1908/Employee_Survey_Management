@@ -1,0 +1,40 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.QuestionDetailsVM
+@{
+    ViewData["Title"] = "Chi tiết câu hỏi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="mb-3">Chi tiết câu hỏi</h5>
+            <dl class="row">
+                <dt class="col-sm-3">Ngân hàng</dt>
+                <dd class="col-sm-9">@Model.BankName</dd>
+                <dt class="col-sm-3">Kỹ năng</dt>
+                <dd class="col-sm-9">@(!string.IsNullOrEmpty(Model.SkillName) ? Model.SkillName : "-")</dd>
+                <dt class="col-sm-3">Loại</dt>
+                <dd class="col-sm-9">@(Model.Type == 0 ? "MCQ" : Model.Type == 1 ? "Tự luận" : "Đúng/Sai")</dd>
+                <dt class="col-sm-3">Độ khó</dt>
+                <dd class="col-sm-9">@(Model.Difficulty == 0 ? "Junior" : Model.Difficulty == 1 ? "Middle" : "Senior")</dd>
+                <dt class="col-sm-3">Điểm</dt>
+                <dd class="col-sm-9">@Model.Score</dd>
+                <dt class="col-sm-3">Nội dung</dt>
+                <dd class="col-sm-9"><pre class="mb-0">@Model.Content</pre></dd>
+                @if (!string.IsNullOrWhiteSpace(Model.OptionsJson))
+                {
+                    <dt class="col-sm-3">Options</dt>
+                    <dd class="col-sm-9"><pre class="mb-0">@Model.OptionsJson</pre></dd>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.CorrectAnswerJson))
+                {
+                    <dt class="col-sm-3">Đáp án</dt>
+                    <dd class="col-sm-9"><pre class="mb-0">@Model.CorrectAnswerJson</pre></dd>
+                }
+            </dl>
+        </div>
+        <div class="card-footer text-end">
+            <a class="btn btn-secondary" asp-area="Admin" asp-controller="Questions" asp-action="Index">Quay lại</a>
+            <a class="btn btn-primary" asp-area="Admin" asp-controller="Questions" asp-action="Edit" asp-route-id="@Model.Id">Sửa</a>
+        </div>
+    </div>
+</div>
