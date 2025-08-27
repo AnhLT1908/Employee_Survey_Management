@@ -1,4 +1,5 @@
 ﻿@model HRTestWeb.Areas.Admin.Controllers.TestIndexVM
+@using System.Text.Encodings.Web
 @{
     ViewData["Title"] = "Quản lý bài test";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -69,12 +70,24 @@
                                 <td class="text-center">@t.DurationMinutes phút</td>
                                 <td class="text-center">@t.PassScore</td>
                                 <td>
-                                    <div class="d-flex gap-2">
-                                        <a class="btn btn-sm btn-outline-secondary" asp-area="Admin" asp-controller="Tests" asp-action="Details" asp-route-id="@t.Id">Xem</a>
-                                        <a class="btn btn-sm btn-outline-primary disabled" href="#">Sửa</a>
-                                        <a class="btn btn-sm btn-outline-danger disabled" href="#">Xoá</a>
-                                    </div>
-                                </td>
+    <div class="d-flex gap-2">
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-area="Admin" asp-controller="Tests" asp-action="Details" asp-route-id="@t.Id">Xem</a>
+
+        <a class="btn btn-sm btn-outline-primary"
+           asp-area="Admin" asp-controller="Tests" asp-action="Edit" asp-route-id="@t.Id">Sửa</a>
+
+                                        <form asp-area="Admin" asp-controller="Tests" asp-action="Delete" asp-route-id="@t.Id"
+                                              method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Bạn chắc chắn muốn xoá @JavaScriptEncoder.Default.Encode(t.Name)? Hành động không thể hoàn tác.');">
+                                                Xoá
+                                            </button>
+                                        </form>
+    </div>
+</td>
+
                             </tr>
                         }
                     }

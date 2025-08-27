@@ -1,0 +1,79 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.SettingsController.SettingsVM
+@{
+    ViewData["Title"] = "Cấu hình hệ thống";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="m-0">Cấu hình hệ thống</h3>
+        <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Home" asp-action="Index">‹ Dashboard</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <form method="post" enctype="multipart/form-data" class="card shadow-sm">
+        @Html.AntiForgeryToken()
+        <div class="card-body row g-3">
+            <div class="col-md-6">
+                <label asp-for="SiteName" class="form-label"></label>
+                <input asp-for="SiteName" class="form-control" />
+                <span asp-validation-for="SiteName" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Logo hiện tại</label>
+                <div>
+                    <img src="@Url.Content(string.IsNullOrWhiteSpace(Model.CurrentLogoPath) ? "~/img/logo_black.png" : Model.CurrentLogoPath)"
+                         style="height:40px" alt="Logo" />
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="LogoFile" class="form-label"></label>
+                <input asp-for="LogoFile" type="file" accept="image/*" class="form-control" />
+            </div>
+
+            <div class="col-12"><hr /></div>
+
+            <div class="col-md-4">
+                <label asp-for="SmtpHost" class="form-label"></label>
+                <input asp-for="SmtpHost" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label asp-for="SmtpPort" class="form-label"></label>
+                <input asp-for="SmtpPort" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SmtpUser" class="form-label"></label>
+                <input asp-for="SmtpUser" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SmtpPass" class="form-label"></label>
+                <input asp-for="SmtpPass" type="password" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="From" class="form-label"></label>
+                <input asp-for="From" class="form-control" />
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+                <div class="form-check">
+                    <input asp-for="UseStartTls" class="form-check-input" />
+                    <label asp-for="UseStartTls" class="form-check-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+            <a class="btn btn-link" asp-area="Admin" asp-controller="Home" asp-action="Index">← Quay lại</a>
+            <button class="btn btn-primary" type="submit">Lưu cấu hình</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

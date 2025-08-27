@@ -1,14 +1,15 @@
-﻿@model HRTestWeb.Areas.Admin.Controllers.TestCreateVM
+﻿@model HRTestWeb.Areas.Admin.Controllers.TestEditVM
 @{
-    ViewData["Title"] = "Tạo bài test";
+    ViewData["Title"] = "Sửa bài test";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-4">
-    <h3 class="mb-3">Tạo bài test</h3>
+    <h3 class="mb-3">Sửa bài test</h3>
 
-    <form asp-area="Admin" asp-controller="Tests" asp-action="Create" method="post" class="card shadow-sm">
+    <form asp-area="Admin" asp-controller="Tests" asp-action="Edit" method="post" class="card shadow-sm">
         @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
 
         <div class="card-body row g-3">
             <div class="col-12">
@@ -35,9 +36,23 @@
             </div>
 
             <div class="col-md-4">
-                <label asp-for="QuestionCount" class="form-label"></label>
-                <input asp-for="QuestionCount" class="form-control" />
+                <label class="form-label">Số câu hỏi</label>
+                <div class="input-group">
+                    <input asp-for="QuestionCount" class="form-control" />
+                    <span class="input-group-text">hiện có: @Model.CurrentQuestionCount</span>
+                </div>
+                <div class="form-text">Chỉ áp dụng khi bật “Xáo trộn lại câu hỏi”.</div>
                 <span asp-validation-for="QuestionCount" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" asp-for="RegenerateQuestions" />
+                    <label class="form-check-label" asp-for="RegenerateQuestions"></label>
+                </div>
+                <div class="form-text">
+                    Khi bật, hệ thống sẽ chọn ngẫu nhiên lại câu hỏi theo bộ lọc bên dưới và thay thế danh sách hiện tại.
+                </div>
             </div>
 
             <div class="col-md-6">
@@ -77,7 +92,7 @@
                 </select>
             </div>
 
-            <!-- Thời gian hiệu lực cho bài test (áp dụng cho Assignment) -->
+            <!-- Thời gian hiệu lực cho Assignment -->
             <div class="col-md-6">
                 <label asp-for="StartAt" class="form-label"></label>
                 <input asp-for="StartAt" class="form-control" type="datetime-local" />
@@ -101,7 +116,7 @@
 
         <div class="card-footer d-flex justify-content-between">
             <a class="btn btn-link" asp-area="Admin" asp-controller="Tests" asp-action="Index">← Quay lại</a>
-            <button type="submit" class="btn btn-primary">Tạo bài test</button>
+            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
         </div>
     </form>
 </div>

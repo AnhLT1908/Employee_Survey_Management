@@ -4,6 +4,7 @@ using HRTestInfrastructure.Data;
 using HRTestInfrastructure.Identity;
 using HRTestWeb.Options;
 using HRTestWeb.Services.Email;
+using HRTestWeb.Services.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -82,6 +83,12 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
           ?? throw new InvalidOperationException("Missing Jwt section in appsettings.json");
 
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
 // Session 30'
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(opt =>
@@ -90,6 +97,7 @@ builder.Services.AddSession(opt =>
     opt.Cookie.HttpOnly = true;
     opt.Cookie.IsEssential = true;
 });
+
 
 // Authentication: policy scheme tự chọn Cookie cho web, JWT cho API/Bearer
 var authBuilder = builder.Services.AddAuthentication(options =>
@@ -156,40 +164,40 @@ if (!string.IsNullOrWhiteSpace(googleId) && !string.IsNullOrWhiteSpace(googleSec
 var app = builder.Build();
 
 
-using (var scope = app.Services.CreateScope())
-{
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+//using (var scope = app.Services.CreateScope())
+//{
+//    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-var email = "admin@fint.com";
-    var user = await userManager.FindByEmailAsync(email);
+//var email = "letienanh1908@gmail.com";
+//    var user = await userManager.FindByEmailAsync(email);
 
-    if (user == null)
-    {
-        user = new ApplicationUser
-        {
-            UserName = email,
-            Email = email,
-            EmailConfirmed = true,
-            FullName = "Admin System"
-        };
+//    if (user == null)
+//    {
+//        user = new ApplicationUser
+//        {
+//            UserName = email,
+//            Email = email,
+//            EmailConfirmed = true,
+//            FullName = "Tien Anh"
+//        };
 
-        var create = await userManager.CreateAsync(user, "Leanh2003");
-        if (!create.Succeeded)
-        {
-            throw new Exception("Seed user creation failed: " +
-                string.Join("; ", create.Errors.Select(e => e.Description)));
-        }
+//        var create = await userManager.CreateAsync(user, "Leanh2003");
+//        if (!create.Succeeded)
+//        {
+//            throw new Exception("Seed user creation failed: " +
+//                string.Join("; ", create.Errors.Select(e => e.Description)));
+//        }
 
-        // (Tuỳ chọn) gán role mặc định
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        const string defaultRole = "Admin";
-        if (!await roleManager.RoleExistsAsync(defaultRole))
-            await roleManager.CreateAsync(new IdentityRole(defaultRole));
-        await userManager.AddToRoleAsync(user, defaultRole);
-    }
+//        // (Tuỳ chọn) gán role mặc định
+//        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+//        const string defaultRole = "Dev";
+//        if (!await roleManager.RoleExistsAsync(defaultRole))
+//            await roleManager.CreateAsync(new IdentityRole(defaultRole));
+//        await userManager.AddToRoleAsync(user, defaultRole);
+//    }
 
 
-}
+//}
 
 // ===== Auto-migrate (dev) =====
 using (var scope = app.Services.CreateScope())

@@ -22,6 +22,8 @@ namespace HRTestInfrastructure.Data
         public DbSet<Feedback> Feedbacks => Set<Feedback>();
         public DbSet<Notification> Notifications => Set<Notification>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<AppSetting> AppSettings { get; set; } = default!;
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -137,6 +139,8 @@ namespace HRTestInfrastructure.Data
                 b.Property(x => x.Name).HasMaxLength(200).IsRequired();
                 b.HasIndex(x => x.Name).IsUnique();
             });
+
+            modelBuilder.Entity<AppSetting>().HasIndex(x => x.Key).IsUnique();
 
             // Indexes hữu ích
             modelBuilder.Entity<TestAttempt>().HasIndex(x => new { x.TestId, x.UserId });
