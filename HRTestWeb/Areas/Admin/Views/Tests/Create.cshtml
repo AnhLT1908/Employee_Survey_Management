@@ -1,0 +1,96 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.TestCreateVM
+@{
+    ViewData["Title"] = "Tạo bài test";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <h3 class="mb-3">Tạo bài test</h3>
+
+    <form asp-area="Admin" asp-controller="Tests" asp-action="Create" method="post" class="card shadow-sm">
+        @Html.AntiForgeryToken()
+
+        <div class="card-body row g-3">
+            <div class="col-12">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="DurationMinutes" class="form-label"></label>
+                <input asp-for="DurationMinutes" class="form-control" />
+                <span asp-validation-for="DurationMinutes" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="PassScore" class="form-label"></label>
+                <input asp-for="PassScore" class="form-control" />
+                <span asp-validation-for="PassScore" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="QuestionCount" class="form-label"></label>
+                <input asp-for="QuestionCount" class="form-control" />
+                <span asp-validation-for="QuestionCount" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="BankId" class="form-label"></label>
+                <select asp-for="BankId" asp-items="Model.Banks" class="form-select"></select>
+                <span asp-validation-for="BankId" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Difficulty" class="form-label"></label>
+                <select asp-for="Difficulty" class="form-select">
+                    <option value="">-- Tất cả độ khó --</option>
+                    <option value="0">Intern</option>
+                    <option value="1">Fresher</option>
+                    <option value="2">Junior</option>
+                    <option value="3">Middle</option>
+                    <option value="4">Senior</option>
+                    <option value="5">Lead</option>
+                    <option value="6">Manager</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Type" class="form-label"></label>
+                <select asp-for="Type" class="form-select">
+                    <option value="">-- Tất cả loại --</option>
+                    <option value="0">Trắc nghiệm (MCQ)</option>
+                    <option value="1">Tự luận</option>
+                    <option value="2">Đúng / Sai</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="LevelId" class="form-label"></label>
+                <select asp-for="LevelId" asp-items="Model.Levels" class="form-select">
+                    <option value="">-- Không ràng buộc level --</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Áp dụng cho Roles (không gồm Admin)</label>
+                <select asp-for="SelectedRoles" asp-items="Model.Roles" class="form-select" multiple size="6"></select>
+                <div class="form-text">Giữ Ctrl/Shift để chọn nhiều role.</div>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+            <a class="btn btn-link" asp-area="Admin" asp-controller="Tests" asp-action="Index">← Quay lại</a>
+            <button type="submit" class="btn btn-primary">Tạo bài test</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

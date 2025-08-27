@@ -1,0 +1,120 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.TestIndexVM
+@{
+    ViewData["Title"] = "Quản lý bài test";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="m-0">Quản lý bài test</h3>
+            <div class="text-muted small">Tìm kiếm, lọc theo Role (loại trừ Admin), 10 bản ghi/trang.</div>
+        </div>
+        <a class="btn btn-primary" asp-area="Admin" asp-controller="Tests" asp-action="Create">+ Tạo bài test</a>
+    </div>
+
+    <form method="get" class="card shadow-sm mb-3">
+        <div class="card-body row g-2 align-items-end">
+            <div class="col-sm-6">
+                <label class="form-label">Tìm kiếm</label>
+                <input class="form-control" name="q" value="@Model.Q" placeholder="Tên hoặc mô tả..." />
+            </div>
+            <div class="col-sm-4">
+                <label class="form-label">Role</label>
+                <select class="form-select" name="role">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var r in Model.Roles)
+                    {
+                        <option value="@r" selected="@(r == Model.Role)">@r</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-2 text-end">
+                <button class="btn btn-outline-secondary me-2" type="submit">Lọc</button>
+                <a class="btn btn-link text-decoration-none" asp-area="Admin" asp-controller="Tests" asp-action="Index">Xoá lọc</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tên bài test</th>
+                        <th style="width:110px" class="text-center">Câu hỏi</th>
+                        <th style="width:120px" class="text-center">Thời gian</th>
+                        <th style="width:120px" class="text-center">Điểm qua môn</th>
+                        <th style="width:160px">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">Không có dữ liệu.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var t in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@t.Name</div>
+                                    @if (!string.IsNullOrWhiteSpace(t.Description))
+                                    {
+                                        <div class="small text-muted">@t.Description</div>
+                                    }
+                                </td>
+                                <td class="text-center">@t.QuestionCount</td>
+                                <td class="text-center">@t.DurationMinutes phút</td>
+                                <td class="text-center">@t.PassScore</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-sm btn-outline-secondary" asp-area="Admin" asp-controller="Tests" asp-action="Details" asp-route-id="@t.Id">Xem</a>
+                                        <a class="btn btn-sm btn-outline-primary disabled" href="#">Sửa</a>
+                                        <a class="btn btn-sm btn-outline-danger disabled" href="#">Xoá</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <div class="text-muted small">
+                    @{
+                        var from = (Model.Page - 1) * Model.PageSize + 1;
+                        var to = Math.Min(Model.Page * Model.PageSize, Model.TotalItems);
+                    }
+                    Hiển thị @from–@to / @Model.TotalItems
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        @{
+                            string MakeLink(int p) => Url.Action("Index", new { q = Model.Q, role = Model.Role, page = p })!;
+                            var prevDisabled = Model.Page <= 1 ? " disabled" : "";
+                            var nextDisabled = Model.Page >= Model.TotalPages ? " disabled" : "";
+                        }
+                        <li class="page-item@prevDisabled">
+                            <a class="page-link" href="@(Model.Page > 1 ? MakeLink(Model.Page - 1) : "#")">‹</a>
+                        </li>
+                        @for (var p = 1; p <= Model.TotalPages; p++)
+                        {
+                            var active = p == Model.Page ? " active" : "";
+                            <li class="page-item@active">
+                                <a class="page-link" href="@MakeLink(p)">@p</a>
+                            </li>
+                        }
+                        <li class="page-item@nextDisabled">
+                            <a class="page-link" href="@(Model.Page<Model.TotalPages? MakeLink(Model.Page + 1) : "#")">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,153 @@
+﻿@model HRTestWeb.Areas.Admin.Controllers.TestDetailsVM
+@{
+    ViewData["Title"] = "Chi tiết bài kiểm tra";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="m-0">Chi tiết bài kiểm tra</h3>
+            <div class="text-muted small">ID: @Model.Id</div>
+        </div>
+        <div>
+            <a class="btn btn-outline-secondary me-2" asp-area="Admin" asp-controller="Tests" asp-action="Index">‹ Quay lại</a>
+            <a class="btn btn-primary" asp-area="Admin" asp-controller="Tests" asp-action="Index">Danh sách</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-2">@Model.Name</h5>
+                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                    {
+                        <p class="text-muted">@Model.Description</p>
+                    }
+                    <div class="mb-2">
+                        <span class="badge bg-secondary me-1">Thời gian: @Model.DurationMinutes' </span>
+                        <span class="badge bg-success me-1">Điểm qua môn: @Model.PassScore</span>
+                        <span class="badge bg-info text-dark me-1">Câu hỏi: @Model.QuestionCount</span>
+                        @if (Model.IsRandomized)
+                        {
+                            <span class="badge bg-warning text-dark">Xáo trộn</span>
+                        }
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-muted small mb-1">Ngân hàng câu hỏi:</div>
+                        @if (Model.Banks.Any())
+                        {
+                            foreach (var b in Model.Banks)
+                            {
+                                <span class="badge bg-light text-dark me-1">@b</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">Không xác định</span>
+                        }
+                    </div>
+                    <div class="text-muted small">Tạo bởi: @Model.CreatedBy</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title">Phân phối theo Role / Level</h6>
+                    @if (!Model.RoleAssignments.Any())
+                    {
+                        <div class="text-muted">Chưa gán role/level.</div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>Level</th>
+                                        <th>Bắt đầu</th>
+                                        <th>Kết thúc</th>
+                                        <th class="text-center">Kích hoạt</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var a in Model.RoleAssignments)
+                                    {
+                                        <tr>
+                                            <td>@a.RoleName</td>
+                                            <td>@a.LevelName</td>
+                                            <td>@(a.StartAt.HasValue? a.StartAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")</td>
+                                            <td>@(a.EndAt.HasValue? a.EndAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")</td>
+                                            <td class="text-center">
+                                                @if (a.IsActive)
+                                                {
+                                                    <span class="badge bg-success">On</span>
+                                                }
+                                                else
+                                                {
+
+                                                    <span class="badge bg-secondary">Off</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
+            <h6 class="card-title">Danh sách câu hỏi</h6>
+            @if (!Model.Questions.Any())
+            {
+                <div class="text-muted">Bài kiểm tra chưa có câu hỏi.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:60px" class="text-center">#</th>
+                                <th>Nội dung</th>
+                                <th style="width:160px">Loại</th>
+                                <th style="width:140px">Độ khó</th>
+                                <th style="width:160px">Kỹ năng</th>
+                                <th style="width:90px" class="text-end">Điểm</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var q in Model.Questions)
+                            {
+                                <tr>
+                                    <td class="text-center">@q.Order</td>
+                                    <td>
+                                        <div class="fw-semibold">@q.Content</div>
+                                        <div class="text-muted small">ID: @q.Id</div>
+                                    </td>
+                                    <td>@q.TypeName</td>
+                                    <td>@q.DifficultyName</td>
+                                    <td>@(string.IsNullOrWhiteSpace(q.SkillName) ? "-" : q.SkillName)</td>
+                                    <td class="text-end">@q.Score</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
