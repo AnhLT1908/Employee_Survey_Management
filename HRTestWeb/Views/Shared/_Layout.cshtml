@@ -18,6 +18,9 @@
     var appCfg = await AppSettings.GetCachedAsync();
     var siteName = string.IsNullOrWhiteSpace(appCfg.SiteName) ? "HRTest" : appCfg.SiteName;
     var logoSrc = Url.Content(string.IsNullOrWhiteSpace(appCfg.LogoPath) ? "~/img/logo_black.png" : appCfg.LogoPath);
+
+    // Khóa lưu localStorage theo user để không trộn giữa người dùng
+    var userId = SignInManager.IsSignedIn(User) ? UserManager.GetUserId(User) : null;
 }
 
 <!DOCTYPE html>
@@ -27,74 +30,259 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - HRTest</title>
 
-    <!-- Bootstrap 5 (CDN) -->
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons (chuông) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
     <!-- CSS của app -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/HRTestWeb.styles.css" asp-append-version="true" />
     @RenderSection("Styles", required: false)
+
+    <style>
+        /* Popup thông báo */
+        .notif-menu {
+            min-width: 340px;
+            max-height: 420px;
+            overflow: auto;
+        }
+
+        .notif-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notif-time {
+            font-size: .8rem;
+            color: #6c757d;
+        }
+
+        .notif-badge {
+            transform: translate(-35%, -35%);
+            font-size: .70rem;
+        }
+
+        .notif-empty {
+            padding: 1rem;
+            color: #6c757d;
+            text-align: center;
+        }
+    </style>
 </head>
 <body class="bg-white">
 
-    <!-- HEADER -->
     <header class="app-header sticky-top bg-white border-bottom shadow-sm">
         <nav class="navbar navbar-expand-lg bg-light border-bottom mb-3">
             <div class="container">
-                <!-- Brand: logo + chữ -->
+                <!-- Brand -->
                 <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
                     <img src="@logoSrc" alt="@siteName" class="me-2" style="height:28px;width:auto" asp-append-version="true" />
                     <span class="fw-semibold">@siteName</span>
                 </a>
 
-
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainnav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-    <div id="mainnav" class="collapse navbar-collapse">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
-        </li>
-      </ul>
+                <div id="mainnav" class="collapse navbar-collapse">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link @IsActive("Home", "Index")" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                    </ul>
 
-      <ul class="navbar-nav">
-        @if (SignInManager.IsSignedIn(User))
-        {
-            <li class="nav-item me-2 align-self-center">
-              <span class="text-muted small">@User.Identity!.Name</span>
-            </li>
-        <li class="nav-item">
-  <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-    @Html.AntiForgeryToken()
-    <button type="submit" class="btn btn-outline-danger btn-sm">Đăng xuất</button>
-  </form>
-</li>
-        }
-        else
-        {
-            <li class="nav-item">
-              <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-            </li>
-        }
-      </ul>
-    </div>
-  </div>
-</nav>
+                    <ul class="navbar-nav">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <!-- 🔔 Notification bell -->
+                            <li class="nav-item dropdown me-2">
+                                <a class="nav-link position-relative" href="#" id="notifDropdown"
+                                   role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                   title="Thông báo" data-userid="@userId">
+                                    <i class="bi bi-bell fs-5"></i>
+                                    <span id="notifBadge"
+                                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notif-badge d-none">
+                                        0
+                                    </span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end p-0 notif-menu" aria-labelledby="notifDropdown">
+                                    <div id="notifList" class="list-group list-group-flush">
+                                        <div class="notif-empty">Chưa có thông báo.</div>
+                                    </div>
+                                    <div class="d-flex gap-2 p-2 border-top">
+                                        <button id="notifMarkRead" class="btn btn-sm btn-light flex-fill">Đánh dấu đã đọc</button>
+                                        <button id="notifClear" class="btn btn-sm btn-outline-secondary">Xoá tất cả</button>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="nav-item me-2 align-self-center">
+                                <span class="text-muted small">@User.Identity!.Name</span>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Đăng xuất</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
     </header>
 
-    <!-- CONTENT -->
     <main class="app-content">
         <div class="container py-3">
             @RenderBody()
         </div>
     </main>
 
-    <!-- JS -->
+    <!-- Libs -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <!-- SignalR client -->
+        <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@7.0.14/dist/browser/signalr.min.js"></script>
+        <script>
+            (function () {
+                const uid = document.getElementById('notifDropdown')?.dataset.userid;
+                if (!uid) return;
+
+                const STORAGE_KEY = `hrtest:notify:${uid}`;
+
+                /** Load/Save state from localStorage */
+                function loadState() {
+                    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"unread":0,"items":[]}'); }
+                    catch { return { unread: 0, items: [] }; }
+                }
+                function saveState(state) { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+                /** Format date to local readable */
+                function fmt(dtIso) {
+                    if (!dtIso) return '';
+                    const d = new Date(dtIso);
+                    return new Intl.DateTimeFormat('vi-VN', {
+                        year:'numeric', month:'2-digit', day:'2-digit',
+                        hour:'2-digit', minute:'2-digit'
+                    }).format(d);
+                }
+
+                /** Render UI */
+                const $badge = document.getElementById('notifBadge');
+                const $list  = document.getElementById('notifList');
+                function render(state) {
+                    // badge
+                    if (state.unread > 0) {
+                        $badge.textContent = state.unread > 99 ? '99+' : state.unread;
+                        $badge.classList.remove('d-none');
+                    } else {
+                        $badge.classList.add('d-none');
+                    }
+
+                    // list
+                    $list.innerHTML = '';
+                    if (!state.items.length) {
+                        $list.innerHTML = '<div class="notif-empty">Chưa có thông báo.</div>';
+                        return;
+                    }
+                    state.items
+                        .sort((a,b) => b.ts - a.ts)
+                        .slice(0, 30) // hiển thị tối đa 30 item
+                        .forEach(n => {
+                            const a = document.createElement('a');
+                            a.href = n.url || '#';
+                            a.className = 'list-group-item list-group-item-action notif-item';
+                            a.innerHTML = `
+                                <div class="d-flex justify-content-between">
+                                    <div class="${n.seen ? '' : 'fw-semibold'}">${n.text}</div>
+                                    <span class="notif-time ms-3">${fmt(n.time)}</span>
+                                </div>
+                            `;
+                            // mark seen when click
+                            a.addEventListener('click', () => {
+                                n.seen = true; saveState(state); render(state);
+                            });
+                            $list.appendChild(a);
+                        });
+                }
+
+                // init from storage
+                const state = loadState();
+                render(state);
+
+                // mark read when menu opened
+                const dd = document.getElementById('notifDropdown');
+                dd?.addEventListener('shown.bs.dropdown', () => {
+                    let changed = false;
+                    state.items.forEach(n => { if (!n.seen) { n.seen = true; changed = true; } });
+                    if (changed) { state.unread = 0; saveState(state); render(state); }
+                });
+
+                // buttons
+                document.getElementById('notifMarkRead')?.addEventListener('click', () => {
+                    state.items.forEach(n => n.seen = true);
+                    state.unread = 0; saveState(state); render(state);
+                });
+                document.getElementById('notifClear')?.addEventListener('click', () => {
+                    state.items = []; state.unread = 0; saveState(state); render(state);
+                });
+
+                /** Build text/url from server payload */
+                function buildItem(msg) {
+                    // mặc định: test.{created|updated}
+                    if (msg && (msg.type === 'test.created' || msg.type === 'test.updated')) {
+                        const act = msg.type === 'test.created' ? 'mới' : 'đã cập nhật';
+                        const level = msg.levelName || (msg.levelId ? `Level ${msg.levelId}` : '');
+                        const when = msg.startAtUtc ? fmt(msg.startAtUtc) : '';
+                        return {
+                            text: `Bài test "${msg.name}" ${act}${level ? ` (${level})` : ''}${when ? ` • Bắt đầu: ${when}` : ''}`,
+                            url:  `/Admin/Tests/Details/${msg.testId}`
+                        };
+                    }
+                    // fallback
+                    return { text: 'Thông báo mới', url: '#' };
+                }
+
+                /** SignalR connect */
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/hubs/notify")
+                    .withAutomaticReconnect()
+                    .build();
+
+                connection.on("Notify", function (msg) {
+                    const item = buildItem(msg);
+                    state.items.unshift({
+                        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+                        text: item.text,
+                        url: item.url,
+                        time: new Date().toISOString(),
+                        ts: Date.now(),
+                        seen: false
+                    });
+                    state.unread = (state.unread || 0) + 1;
+                    // chỉ lưu tối đa 100 item
+                    if (state.items.length > 100) state.items.length = 100;
+                    saveState(state);
+                    render(state);
+                    // toast nhỏ (tuỳ chọn)
+                    try { console.log("🔔 Notify:", msg); } catch {}
+                });
+
+                connection.start().catch(err => console.error("SignalR error:", err));
+            })();
+        </script>
+    }
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

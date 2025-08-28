@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using HRTestWeb.Hubs;                      
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,8 @@ builder.Services
     .AddEntityFrameworkStores<HRTestDbContext>()
     .AddDefaultTokenProviders()
     .AddDefaultUI();
+
+builder.Services.AddSignalR();
 
 // Cookie: API trả status thay vì redirect
 builder.Services.ConfigureApplicationCookie(opt =>
@@ -254,6 +257,9 @@ using (var scope = app.Services.CreateScope())
 
 // ===== endpoints =====
 app.MapControllers();
+
+app.MapHub<NotificationHub>("/hubs/notify");
+
 
 app.MapControllerRoute(
     name: "areas",

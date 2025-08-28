@@ -5,10 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using HRTestDomain.Entities;
 using HRTestInfrastructure.Data;
+using HRTestWeb.Hubs;                     // <-- add
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;       // <-- add
 using Microsoft.EntityFrameworkCore;
 
 namespace HRTestWeb.Areas.Admin.Controllers
@@ -19,12 +21,45 @@ namespace HRTestWeb.Areas.Admin.Controllers
     {
         private readonly HRTestDbContext _db;
         private readonly RoleManager<IdentityRole> _roleMgr;
+        private readonly IHubContext<NotificationHub> _hub;   // <-- add
         private const int PAGE_SIZE = 10;
 
-        public TestsController(HRTestDbContext db, RoleManager<IdentityRole> roleMgr)
+        public TestsController(
+            HRTestDbContext db,
+            RoleManager<IdentityRole> roleMgr,
+            IHubContext<NotificationHub> hub)                 // <-- add
         {
             _db = db;
             _roleMgr = roleMgr;
+            _hub = hub;                                       // <-- add
+        }
+
+        // ====== helper bắn notify theo group role ======
+        private async Task NotifyRolesNewOrUpdatedTestAsync(
+            Test test, IEnumerable<string> roles, int? levelId,
+            DateTime startUtc, DateTime? endUtc, string action = "created")
+        {
+            if (roles == null) return;
+
+            string levelName = null;
+            if (levelId.HasValue)
+                levelName = await _db.Levels.Where(l => l.Id == levelId.Value)
+                                            .Select(l => l.Name)
+                                            .FirstOrDefaultAsync();
+
+            var groups = roles.Distinct().Select(r => $"role:{r}");
+            var payload = new
+            {
+                type = $"test.{action}",      // "test.created" / "test.updated"
+                testId = test.Id,
+                name = test.Name,
+                levelId,
+                levelName,
+                startAtUtc = startUtc,
+                endAtUtc = endUtc
+            };
+
+            await _hub.Clients.Groups(groups).SendAsync("Notify", payload);
         }
 
         // ========== LIST ==========
@@ -133,7 +168,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
                     .Select(r => new SelectListItem(r.Name!, r.Name!)).ToListAsync();
             }
 
-            // validate thời gian (nếu cả 2 cùng nhập)
             if (vm.StartAt.HasValue && vm.EndAt.HasValue && vm.StartAt > vm.EndAt)
             {
                 ModelState.AddModelError(nameof(vm.EndAt), "Thời gian kết thúc phải sau thời gian bắt đầu.");
@@ -145,10 +179,7 @@ namespace HRTestWeb.Areas.Admin.Controllers
                 return View(vm);
             }
 
-            // Lấy nguồn câu hỏi theo ngân hàng
             var qQuery = _db.Questions.Where(q => q.BankId == vm.BankId);
-
-            // (tuỳ chọn) lọc Difficulty & Type
             if (vm.Difficulty.HasValue) qQuery = qQuery.Where(q => q.Difficulty == vm.Difficulty.Value);
             if (vm.Type.HasValue) qQuery = qQuery.Where(q => q.Type == vm.Type.Value);
 
@@ -194,13 +225,14 @@ namespace HRTestWeb.Areas.Admin.Controllers
             }
 
             // Gán cho Role + Level + thời gian hiệu lực
+            DateTime? startUtc = null;
+            DateTime? endUtc = null;
             if (vm.SelectedRoles != null && vm.SelectedRoles.Any() && vm.LevelId.HasValue)
             {
-                // chuyển sang UTC nếu người dùng nhập
-                DateTime? startUtc = vm.StartAt.HasValue
+                startUtc = vm.StartAt.HasValue
                     ? DateTime.SpecifyKind(vm.StartAt.Value, DateTimeKind.Local).ToUniversalTime()
-                    : (DateTime?)null;
-                DateTime? endUtc = vm.EndAt.HasValue
+                    : DateTime.UtcNow;
+                endUtc = vm.EndAt.HasValue
                     ? DateTime.SpecifyKind(vm.EndAt.Value, DateTimeKind.Local).ToUniversalTime()
                     : (DateTime?)null;
 
@@ -211,7 +243,7 @@ namespace HRTestWeb.Areas.Admin.Controllers
                         TestId = test.Id,
                         TargetType = "Role",
                         TargetValue = $"{role}|{vm.LevelId.Value}",
-                        StartAt = startUtc ?? DateTime.UtcNow, // StartAt là non-nullable
+                        StartAt = startUtc.Value, // non-nullable
                         EndAt = endUtc,
                         IsActive = true
                     });
@@ -220,6 +252,18 @@ namespace HRTestWeb.Areas.Admin.Controllers
 
             await _db.SaveChangesAsync();
             await tx.CommitAsync();
+
+            // 🔔 Notify theo role sau khi commit
+            if (vm.SelectedRoles != null && vm.SelectedRoles.Any() && vm.LevelId.HasValue)
+            {
+                await NotifyRolesNewOrUpdatedTestAsync(
+                    test,
+                    vm.SelectedRoles,
+                    vm.LevelId,
+                    startUtc ?? DateTime.UtcNow,
+                    endUtc,
+                    action: "created");
+            }
 
             TempData["Success"] = "Đã tạo bài test và sinh câu hỏi ngẫu nhiên.";
             return RedirectToAction(nameof(Index));
@@ -232,14 +276,12 @@ namespace HRTestWeb.Areas.Admin.Controllers
             var test = await _db.Tests.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
             if (test == null) return NotFound();
 
-            // Lấy câu hỏi của test
             var qList = await _db.TestQuestions
                 .Where(tq => tq.TestId == id)
                 .Join(_db.Questions, tq => tq.QuestionId, q => q.Id, (tq, q) => new { tq.Order, Q = q })
                 .OrderBy(x => x.Order)
                 .ToListAsync();
 
-            // Banks, Skills, Assignments, Levels...
             var bankIds = qList.Select(x => x.Q.BankId).Distinct().ToList();
             var bankNames = await _db.QuestionBanks
                 .Where(b => bankIds.Contains(b.Id))
@@ -283,7 +325,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
                 _ => "Khác"
             };
 
-            // Timezone: đổi UTC -> giờ VN (hoặc timezone máy)
             string tzId = OperatingSystem.IsWindows() ? "SE Asia Standard Time" : "Asia/Ho_Chi_Minh";
             var tz = TimeZoneInfo.FindSystemTimeZoneById(tzId);
 
@@ -298,8 +339,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
                 CreatedBy = test.CreatedBy,
                 QuestionCount = qList.Count,
                 Banks = bankNames,
-
-                // ✅ GÁN LẠI DANH SÁCH CÂU HỎI
                 Questions = qList.Select(x => new QuestionItemVM
                 {
                     Order = x.Order,
@@ -311,8 +350,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
                                 ? skillDict[x.Q.SkillId.Value] : null,
                     Score = x.Q.Score
                 }).ToList(),
-
-                // Role/Level + đổi thời gian UTC -> Local
                 RoleAssignments = assigns.Select(a =>
                 {
                     var parts = (a.TargetValue ?? "").Split('|');
@@ -349,29 +386,23 @@ namespace HRTestWeb.Areas.Admin.Controllers
             var test = await _db.Tests.FirstOrDefaultAsync(t => t.Id == id);
             if (test == null) return NotFound();
 
-            // Câu hỏi hiện có của test (để hiển thị số lượng, và lấy BankId mặc định)
             var qList = await _db.TestQuestions
                 .Where(tq => tq.TestId == id)
                 .Join(_db.Questions, tq => tq.QuestionId, q => q.Id, (tq, q) => q)
                 .ToListAsync();
 
-            // BankId: giả định test được sinh từ 1 bank (như lúc Create)
-            // Nếu có nhiều bank thì chọn bank đầu tiên chỉ để prefill dropdown.
             var bankId = qList.Select(q => q.BankId).Distinct().FirstOrDefault();
 
-            // Lấy các Assignment theo Role để prefill Role/Level/Thời gian
             var assigns = await _db.Assignments
                 .Where(a => a.TestId == id && a.TargetType == "Role")
                 .ToListAsync();
 
-            // Các role đang áp dụng
             var selectedRoles = assigns
                 .Select(a => (a.TargetValue ?? "").Split('|').FirstOrDefault())
                 .Where(r => !string.IsNullOrWhiteSpace(r))
                 .Distinct()
                 .ToList();
 
-            // Level: lấy theo assignment đầu tiên (thiết kế đang dùng 1 level chung cho test)
             int? levelId = null;
             var first = assigns.FirstOrDefault();
             if (first != null)
@@ -380,7 +411,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
                 if (parts.Length == 2 && int.TryParse(parts[1], out var lv)) levelId = lv;
             }
 
-            // đổi UTC -> Local để binding vào <input type="datetime-local">
             DateTime? startLocal = first != null
                 ? DateTime.SpecifyKind(first.StartAt, DateTimeKind.Utc).ToLocalTime()
                 : (DateTime?)null;
@@ -395,17 +425,15 @@ namespace HRTestWeb.Areas.Admin.Controllers
                 Description = test.Description,
                 DurationMinutes = test.DurationMinutes,
                 PassScore = test.PassScore,
-                BankId = bankId,                 // dùng để hiển thị mặc định
-                QuestionCount = qList.Count,     // số câu hỏi hiện có
+                BankId = bankId,
+                QuestionCount = qList.Count,
                 CurrentQuestionCount = qList.Count,
-                // Không ép Difficulty/Type vì test có thể trộn; để null là “không ràng buộc”
                 Difficulty = null,
                 Type = null,
                 LevelId = levelId,
                 SelectedRoles = selectedRoles,
                 StartAt = startLocal,
                 EndAt = endLocal,
-                // danh mục
                 Banks = await _db.QuestionBanks.OrderBy(x => x.Name)
                         .Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToListAsync(),
                 Levels = await _db.Levels.OrderBy(x => x.Name)
@@ -431,7 +459,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
                     .Select(r => new SelectListItem(r.Name!, r.Name!)).ToListAsync();
             }
 
-            // Validate thời gian (nếu có nhập)
             if (vm.StartAt.HasValue && vm.EndAt.HasValue && vm.StartAt > vm.EndAt)
                 ModelState.AddModelError(nameof(vm.EndAt), "Thời gian kết thúc phải sau thời gian bắt đầu.");
 
@@ -446,17 +473,14 @@ namespace HRTestWeb.Areas.Admin.Controllers
 
             using var tx = await _db.Database.BeginTransactionAsync();
 
-            // Cập nhật thông tin chung của bài test
             test.Name = vm.Name!.Trim();
             test.Description = vm.Description;
             test.DurationMinutes = vm.DurationMinutes;
             test.PassScore = vm.PassScore;
             await _db.SaveChangesAsync();
 
-            // =================== Re-generate câu hỏi (tuỳ chọn) ===================
             if (vm.RegenerateQuestions)
             {
-                // Lấy nguồn câu hỏi theo bank + optional filters
                 var qQuery = _db.Questions.Where(q => q.BankId == vm.BankId);
                 if (vm.Difficulty.HasValue) qQuery = qQuery.Where(q => q.Difficulty == vm.Difficulty.Value);
                 if (vm.Type.HasValue) qQuery = qQuery.Where(q => q.Type == vm.Type.Value);
@@ -476,7 +500,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
                     .Select(q => q.Id)
                     .ToListAsync();
 
-                // Xoá câu hỏi cũ, thêm lại mới
                 var old = await _db.TestQuestions.Where(tq => tq.TestId == test.Id).ToListAsync();
                 _db.TestQuestions.RemoveRange(old);
 
@@ -490,26 +513,28 @@ namespace HRTestWeb.Areas.Admin.Controllers
                         Order = order++
                     });
                 }
-                // “IsRandomized” cho biết test này được xáo trộn khi tạo/sửa
                 test.IsRandomized = true;
                 await _db.SaveChangesAsync();
             }
 
-            // =================== Cập nhật Assignment theo Role/Level ===================
-            // Xoá các assignment Role cũ, thêm lại theo form
             var oldAssigns = await _db.Assignments
                 .Where(a => a.TestId == test.Id && a.TargetType == "Role").ToListAsync();
             _db.Assignments.RemoveRange(oldAssigns);
 
+            DateTime startUtcForNotify = DateTime.UtcNow;
+            DateTime? endUtcForNotify = null;
+
             if (vm.SelectedRoles != null && vm.SelectedRoles.Any() && vm.LevelId.HasValue)
             {
-                // convert Local -> UTC để lưu
-                DateTime startUtc = (vm.StartAt.HasValue
-                                        ? DateTime.SpecifyKind(vm.StartAt.Value, DateTimeKind.Local)
-                                        : DateTime.Now).ToUniversalTime();
-                DateTime? endUtc = vm.EndAt.HasValue
-                                        ? DateTime.SpecifyKind(vm.EndAt.Value, DateTimeKind.Local).ToUniversalTime()
-                                        : (DateTime?)null;
+                var startUtc = (vm.StartAt.HasValue
+                                    ? DateTime.SpecifyKind(vm.StartAt.Value, DateTimeKind.Local)
+                                    : DateTime.Now).ToUniversalTime();
+                var endUtc = vm.EndAt.HasValue
+                                    ? DateTime.SpecifyKind(vm.EndAt.Value, DateTimeKind.Local).ToUniversalTime()
+                                    : (DateTime?)null;
+
+                startUtcForNotify = startUtc;
+                endUtcForNotify = endUtc;
 
                 foreach (var role in vm.SelectedRoles)
                 {
@@ -518,7 +543,7 @@ namespace HRTestWeb.Areas.Admin.Controllers
                         TestId = test.Id,
                         TargetType = "Role",
                         TargetValue = $"{role}|{vm.LevelId.Value}",
-                        StartAt = startUtc,   // cột StartAt là non-nullable
+                        StartAt = startUtc,
                         EndAt = endUtc,
                         IsActive = true
                     });
@@ -528,9 +553,17 @@ namespace HRTestWeb.Areas.Admin.Controllers
             await _db.SaveChangesAsync();
             await tx.CommitAsync();
 
+            // 🔔 Notify cập nhật
+            if (vm.SelectedRoles != null && vm.SelectedRoles.Any() && vm.LevelId.HasValue)
+            {
+                await NotifyRolesNewOrUpdatedTestAsync(
+                    test, vm.SelectedRoles, vm.LevelId, startUtcForNotify, endUtcForNotify, action: "updated");
+            }
+
             TempData["Success"] = "Đã cập nhật bài test.";
             return RedirectToAction(nameof(Details), new { id = test.Id });
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -538,7 +571,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
             var test = await _db.Tests.FirstOrDefaultAsync(t => t.Id == id);
             if (test == null) return NotFound();
 
-            // Nếu bạn muốn ngăn xoá khi đã có lượt làm, bật đoạn dưới:
             if (await _db.TestAttempts.AnyAsync(a => a.TestId == id))
             {
                 TempData["Error"] = "Bài test đã có lượt làm. Không thể xoá.";
@@ -549,12 +581,10 @@ namespace HRTestWeb.Areas.Admin.Controllers
             {
                 using var tx = await _db.Database.BeginTransactionAsync();
 
-                // Feedback -> Test đang để DeleteBehavior.Restrict => cần xoá trước
                 var feedbacks = await _db.Feedbacks.Where(f => f.TestId == id).ToListAsync();
                 if (feedbacks.Count > 0) _db.Feedbacks.RemoveRange(feedbacks);
                 await _db.SaveChangesAsync();
 
-                // Các bảng khác đang cascade (TestQuestions, Assignments, TestAttempts, Answers…)
                 _db.Tests.Remove(test);
                 await _db.SaveChangesAsync();
 
@@ -563,14 +593,11 @@ namespace HRTestWeb.Areas.Admin.Controllers
             }
             catch (DbUpdateException ex)
             {
-                // Bắt lỗi ràng buộc nếu có dữ liệu chưa xử lý
-                TempData["Error"] = "Không thể xoá bài test do đang được tham chiếu. " +
-                                    "Vui lòng kiểm tra feedback/attempts liên quan. Chi tiết: " + ex.Message;
+                TempData["Error"] = "Không thể xoá bài test do đang được tham chiếu. Chi tiết: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
         }
-
     }
 
     // ===== ViewModels =====
@@ -622,7 +649,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
         [Display(Name = "Loại câu hỏi (tuỳ chọn)")]
         public int? Type { get; set; }
 
-        // Thời gian áp dụng cho Assignment (tuỳ chọn)
         [Display(Name = "Bắt đầu (tuỳ chọn)")]
         [DataType(DataType.DateTime)]
         public DateTime? StartAt { get; set; }
@@ -684,8 +710,6 @@ namespace HRTestWeb.Areas.Admin.Controllers
         [Display(Name = "Xáo trộn lại câu hỏi")]
         public bool RegenerateQuestions { get; set; } = false;
 
-        // Chỉ để hiển thị tham khảo
         public int CurrentQuestionCount { get; set; }
     }
-
 }
