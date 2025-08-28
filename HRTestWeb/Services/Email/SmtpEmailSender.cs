@@ -27,7 +27,6 @@ namespace HRTestWeb.Services.Email
             var user = string.IsNullOrWhiteSpace(s.SmtpUser) ? _defaults.User : s.SmtpUser;
             var pass = string.IsNullOrWhiteSpace(s.SmtpPass) ? _defaults.Pass : s.SmtpPass;
             var from = string.IsNullOrWhiteSpace(s.From) ? _defaults.From : s.From;
-            var useStartTls = s.UseStartTls;
 
             var msg = new MimeMessage();
             msg.From.Add(MailboxAddress.Parse(from));
@@ -36,8 +35,11 @@ namespace HRTestWeb.Services.Email
             msg.Body = new BodyBuilder { HtmlBody = html }.ToMessageBody();
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(host, port, useStartTls ? SecureSocketOptions.StartTls : SecureSocketOptions.Auto);
-            if (!string.IsNullOrWhiteSpace(user)) await client.AuthenticateAsync(user, pass);
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+
+            if (!string.IsNullOrWhiteSpace(user))
+                await client.AuthenticateAsync(user, pass);
+
             await client.SendAsync(msg);
             await client.DisconnectAsync(true);
         }

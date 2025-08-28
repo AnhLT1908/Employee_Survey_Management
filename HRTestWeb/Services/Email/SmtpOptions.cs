@@ -7,6 +7,5 @@
         public string User { get; set; } = "";
         public string Pass { get; set; } = "";
         public string From { get; set; } = "HRTest <no-reply@local>";
-        public bool UseStartTls { get; set; } = true;
     }
 }

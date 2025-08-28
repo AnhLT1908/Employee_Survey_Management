@@ -1,0 +1,153 @@
+﻿@model HRTestWeb.ViewModels.Profile.ProfilePageVM
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var activeTab = (string?)ViewData["ActiveTab"] ?? "profile";
+}
+
+<div class="container py-4">
+    <h3 class="mb-3">Hồ sơ cá nhân</h3>
+
+    @if (TempData["Success"] is string ok && !string.IsNullOrWhiteSpace(ok))
+    {
+        <div class="alert alert-success">@ok</div>
+    }
+    @if (TempData["Error"] is string err && !string.IsNullOrWhiteSpace(err))
+    {
+        <div class="alert alert-danger">@err</div>
+    }
+
+    <ul class="nav nav-tabs mb-3" id="profileTabs">
+        <li class="nav-item">
+            <a class="nav-link @(activeTab == "profile" ? "active" : "")" data-bs-toggle="tab" href="#tab-profile">Thông tin cá nhân</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(activeTab == "password" ? "active" : "")" data-bs-toggle="tab" href="#tab-password">Đổi mật khẩu</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade @(activeTab == "profile" ? "show active" : "")" id="tab-profile">
+            <form asp-action="UpdateProfile" asp-controller="Profile" method="post" class="card shadow-sm">
+                @Html.AntiForgeryToken()
+                <div class="card-body row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Profile.FullName" class="form-label"></label>
+                        <input asp-for="Profile.FullName" class="form-control" />
+                        <span asp-validation-for="Profile.FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Profile.UserName" class="form-label"></label>
+                        <input asp-for="Profile.UserName" class="form-control" />
+                        <span asp-validation-for="Profile.UserName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Profile.Email" class="form-label"></label>
+                        <input asp-for="Profile.Email" class="form-control" />
+                        <span asp-validation-for="Profile.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Profile.PhoneNumber" class="form-label"></label>
+                        <input asp-for="Profile.PhoneNumber" class="form-control" />
+                        <span asp-validation-for="Profile.PhoneNumber" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Profile.DepartmentDisplay" class="form-label"></label>
+                        <input asp-for="Profile.DepartmentDisplay" class="form-control" readonly disabled />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Profile.LevelDisplay" class="form-label"></label>
+                        <input asp-for="Profile.LevelDisplay" class="form-control" readonly disabled />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Vai trò</label>
+                        <div class="form-control" style="background:#f8f9fa;" readonly disabled>
+                            @if (Model.Profile.Roles?.Any() == true)
+                            {
+                                foreach (var r in Model.Profile.Roles)
+                                {
+                                    <span class="badge bg-secondary me-1">@r</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa có</span>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-pane fade @(activeTab == "password" ? "show active" : "")" id="tab-password">
+            <form id="changePwdForm"
+                  action="@Url.Action("ChangePassword","Profile")"
+                  method="post"
+                  class="card shadow-sm">
+                @Html.AntiForgeryToken()
+                <div class="card-body">
+
+                    <!-- Tổng hợp lỗi từ ModelState (không gắn vào field cụ thể) -->
+                    <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="ChangePassword.CurrentPassword" class="form-label"></label>
+                        <input asp-for="ChangePassword.CurrentPassword" class="form-control" type="password" autocomplete="current-password" />
+                        <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ChangePassword.NewPassword" class="form-label"></label>
+                        <input asp-for="ChangePassword.NewPassword" class="form-control" type="password" autocomplete="new-password" />
+                        <span asp-validation-for="ChangePassword.NewPassword" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ChangePassword.ConfirmPassword" class="form-label"></label>
+                        <input asp-for="ChangePassword.ConfirmPassword" class="form-control" type="password" autocomplete="new-password" />
+                        <span asp-validation-for="ChangePassword.ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-end">
+                    <button type="submit" class="btn btn-outline-primary">Cập nhật mật khẩu</button>
+                </div>
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+      // Log request (bật Preserve log để không mất)
+      (function () {
+        const form = document.getElementById('changePwdForm');
+        if (!form) return;
+        form.addEventListener('submit', function () {
+          const fd = new FormData(form), payload = {};
+          fd.forEach((v,k) => payload[k] = /password/i.test(k) ? `*** (len=${String(v).length})` : v);
+          console.log('[ChangePassword] will POST to:', form.action);
+          console.log('[ChangePassword] payload (masked):', payload);
+        });
+      })();
+
+      // Mở đúng tab nếu có anchor, ví dụ Redirect kèm #tab-password
+      if (location.hash === '#tab-password') {
+        const trigger = document.querySelector('[href="#tab-password"]');
+        if (trigger) new bootstrap.Tab(trigger).show();
+      }
+    </script>
+}
